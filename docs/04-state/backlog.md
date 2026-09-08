@@ -18,18 +18,36 @@ KHÔNG chứa: tính năng ngoài phạm vi (-> 01-product/overview.md §Non-Goa
 
 ## Đang làm
 
-_(trống)_ — feature `tower-defense-v1` đã đóng. Cả 32 FR ở `scope.md` là `xong`,
-trong đó FR-18 **xong ở phạm vi đã thu hẹp** (không có nhạc nền — xem §Nợ kỹ thuật).
+**Đang chờ người thật: PR #1 mở, CI xanh, chưa merge.**
+https://github.com/LeVanAnhDuc/web-game-duck-defense/pull/1
 
-Trạng thái kiểm chứng lúc đóng: **231 test đơn vị** (Vitest, không cần trình
-duyệt) và **22 test e2e** (Playwright, Chromium) đều xanh; `tsc --noEmit` và
-`eslint` sạch; `vite build` ra ~399 KB gzip, dưới trần 900 KB của NFR-PERF-08.
+Feature `tower-defense-v1` đã đóng — cả 32 FR ở `scope.md` là `xong`, trong đó
+FR-18 **xong ở phạm vi đã thu hẹp** (không có nhạc nền — xem §Nợ kỹ thuật). Sau
+khi đóng còn hai đợt nữa: **code review** tìm ra 8 lỗi (mỗi lỗi giờ có một test
+hồi quy đã kiểm đỏ-xanh), và **tích hợp GitHub** — đổi tên sản phẩm thành
+*Duck Defense*, chuyển `base` sang `'./'` (ADR-0007), ba workflow
+CI/deploy/release theo đúng khuôn các game khác trong `web-game/`, và README
+viết lại theo hợp đồng 13 mục của skill `readme-game`.
 
-Sau khi đóng feature còn hai đợt nữa: **code review** tìm ra 8 lỗi (mỗi lỗi giờ
-có một test hồi quy đã kiểm đỏ-xanh), và **tích hợp GitHub** — đổi tên sản phẩm
-thành *Duck Defense*, chuyển `base` sang `'./'` (ADR-0007), thêm ba workflow
-CI/deploy/release theo đúng khuôn các game khác trong `web-game/`, và viết lại
-README theo hợp đồng 13 mục của skill `readme-game`.
+Đo trên **CI thật**, run 34241485241, không phải đo ở máy: `eslint` sạch ·
+`tsc --noEmit` sạch · **231 test đơn vị** xanh · **22 test e2e** (Chromium)
+xanh · `npm audit` không có advisory từ high trở lên · bundle **404.733 B**
+gzip so với trần 921.600 B của NFR-PERF-08.
+
+Hai bước chỉ người thật làm được, theo đúng thứ tự:
+
+1. **Bật Pages** — Settings → Pages → Source → *GitHub Actions*. Cờ
+   `enablement: true` trong `deploy.yml` KHÔNG thay được bước này:
+   `GITHUB_TOKEN` không có quyền tạo Pages site. Merge trước khi bật thì
+   `deploy.yml` đỏ.
+2. **Merge PR #1.** Lúc merge, `deploy.yml` đẩy bản build lên Pages và
+   `release.yml` gắn tag **v0.1.0** rồi sinh release note. Đã chạy thử cả hai
+   script ở máy: `next-version.sh` ra `bump=initial · next=v0.1.0`,
+   `release-notes.sh` nhóm đúng theo Conventional Commit.
+
+Nhánh `feat/tower-defense-v1` và `main` đều đã có trên remote. `main` hiện chỉ
+có hai commit tài liệu và **không có** `.github/workflows/`, nên lần đẩy `main`
+đầu tiên không kích hoạt workflow nào — đó là lý do CI lần đầu chỉ chạy trên PR.
 
 ## Việc tiếp theo
 
