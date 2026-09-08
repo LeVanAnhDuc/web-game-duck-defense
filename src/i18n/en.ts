@@ -134,6 +134,12 @@ export const en: Record<StringKey, string> = {
   'settings.sfx': 'Sound effects',
   'settings.off': 'Off',
 
+  // Tên ngôn ngữ viết bằng CHÍNH ngôn ngữ đó (endonym), nên hai từ điển giống
+  // nhau ở hai khoá này. Chúng vẫn phải nằm trong từ điển: NFR-I18N-01 không có
+  // ngoại lệ, và hardcode ở component thì grep không ra.
+  'locale.vi': 'Tiếng Việt',
+  'locale.en': 'English',
+
   'storage.notWritable':
     'This browser will not let the game save, so progress will NOT be kept. The game still plays normally.',
   'storage.recovered':

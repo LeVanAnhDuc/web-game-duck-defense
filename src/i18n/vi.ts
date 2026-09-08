@@ -4,8 +4,9 @@
  * ở một bên hiện ra thành nhãn trống chứ không thành lỗi.
  *
  * NFR-I18N-01: không chuỗi hiển thị nào được nằm ngoài thư mục này.
- * NFR-I18N-04: chuỗi tiếng Việt dài hơn tiếng Anh ~30%, nên MỌI bố cục phải
- * dựng và kiểm bằng bộ này trước, không phải bằng tiếng Anh.
+ * NFR-I18N-04: KHÔNG bên nào là "bản dài". Đo trên chính hai file này thì tiếng
+ * Việt tổng 2038 ký tự, tiếng Anh 2134 — Việt NGẮN hơn 4,5%; nhưng từng nhãn
+ * lệch nhau tới hai lần theo cả hai chiều. Nên bố cục phải kiểm ở CẢ HAI locale.
  */
 export const vi = {
   'app.title': 'Phòng Tuyến',
@@ -139,6 +140,12 @@ export const vi = {
   'settings.music': 'Nhạc nền',
   'settings.sfx': 'Hiệu ứng âm thanh',
   'settings.off': 'Tắt',
+
+  // Tên ngôn ngữ viết bằng CHÍNH ngôn ngữ đó (endonym), nên hai từ điển giống
+  // nhau ở hai khoá này. Chúng vẫn phải nằm trong từ điển: NFR-I18N-01 không có
+  // ngoại lệ, và hardcode ở component thì grep không ra.
+  'locale.vi': 'Tiếng Việt',
+  'locale.en': 'English',
 
   'storage.notWritable':
     'Trình duyệt không cho lưu dữ liệu, nên tiến trình sẽ KHÔNG được giữ lại. Game vẫn chơi được bình thường.',
