@@ -1,5 +1,32 @@
 # Tower Defense v1 — Implementation Plan
 
+> ## ✅ ĐÃ THỰC HIỆN XONG — 2026-09-08
+>
+> Cả 23 task đã chạy. Checkbox bên dưới **cố ý để nguyên chưa tick**: chúng là
+> phòng vệ khi context bị nén *trong lúc* thi công, và giờ việc đã đóng thì thứ
+> hữu ích hơn là bản ghi **kế hoạch đã lệch ở đâu** — vì đó mới là thứ người đọc
+> sáu tháng sau cần. Trạng thái thật của từng chức năng nằm ở
+> [`scope.md`](../../02-requirements/scope.md), nợ còn lại ở
+> [`backlog.md`](../../04-state/backlog.md).
+>
+> **Bảy chỗ lệch khỏi kế hoạch, và vì sao:**
+>
+> | Kế hoạch | Thực tế | Vì sao |
+> | --- | --- | --- |
+> | Task 2 (types) trước Task 4 (data) | Đảo lại | `core/types.ts` tham chiếu `data/`, nên data phải có trước để module kiểu biên dịch được |
+> | Task 4 chỉ dựng bản đồ 1, bốn bản còn lại ở Task 18 | Dựng cả 5 ngay | Cổng cân bằng nằm ở Task 9, và tinh chỉnh một lượt cho cả bộ rẻ hơn tinh chỉnh một rồi bốn |
+> | Task 5 `applyUpgrades` viết trung tính, làm thật ở Task 16 | Làm thật ngay | Cây nâng cấp cần cho `minUpgradesForMap`, và viết hai lần không tiết kiệm gì |
+> | Task 9 `minUpgradesForMap` theo "ngân sách đã tiêu" | Trả về **cây trống** cho mọi bản đồ | Người chơi có thể tích trữ `cores` mà không mua gì, nên mức thấp nhất thật sự là *không có gì*. Ràng buộc mạnh hơn, và cho một đảm bảo tuyệt đối: không ai bị kẹt |
+> | FR-32 = "bố cục tham chiếu thắng ở mức tối thiểu" | **Thêm** một người chơi mô phỏng bị ràng buộc kinh tế | `runBattle` cấp tháp miễn phí nên nó chỉ trả lời "bố cục có đủ mạnh". Câu hỏi làm một bản đồ thành bất khả thi là "người chơi có KỊP dựng nó không" — và chính test đó bắt được bản đồ 1 thua ở đợt 7 |
+> | Task 20 thay toàn bộ sang sprite Kenney | Cỏ + tháp + địch là sprite, **đường vẫn vector** | Đường của pack là tile 64px trên lưới, bản đồ là polyline tự do. Dùng tile đường ⇒ vẽ lại cả 5 bản đồ ⇒ cân bằng lại từ đầu. Ghi ở `backlog.md` |
+> | FR-18 "âm lượng nhạc và hiệu ứng, tắt riêng" | **Một** thanh trượt âm thanh | v1 không có nhạc nền; một thanh trượt điều khiển thứ không tồn tại thì tệ hơn không có |
+>
+> **Ba lỗi mà không test nào bắt được, chỉ có nhìn app đang chạy mới thấy** —
+> đây là lý do `feature-flow` §5 tồn tại: `resetBridge()` gỡ mất subscriber của
+> React nên màn trận đấu trắng trơn; khung canvas bị React unmount khi đổi bố
+> cục nên `<canvas>` biến mất; và canvas tràn ra ngoài khung, chặn pointer lên
+> nút "gọi đợt" — nút vẫn hiện, vẫn enabled, và không bấm được.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:subagent-driven-development` (recommended) or `superpowers:executing-plans` to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Ship a playable browser tower-defense game: five maps, a global upgrade tree, vi/en switchable, no backend, static hosting at $0.
