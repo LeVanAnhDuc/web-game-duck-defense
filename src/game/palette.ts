@@ -5,8 +5,10 @@
  * sao DUY NHẤT của bảng màu trong code, và đây là đường duy nhất từ đó vào canvas.
  * Bảng thứ hai sẽ lệch, và lệch âm thầm.
  *
- * Bảy màu art (cỏ, đường, enemy) là TẠM, sẽ bị sprite Kenney thay — `MASTER.md`
- * §1.3. Chúng nằm ở đây chứ không trong CSS vì chúng chỉ tồn tại trong canvas.
+ * Cỏ, đường và enemy giờ do sprite Kenney lo, nên chúng KHÔNG còn ở đây. Giá
+ * trị duy nhất còn lại là màu vòng băng — nó là hiệu ứng vẽ bằng vector chồng
+ * lên sprite, không phải một ô art. Chỉ mục frame và màu lấy mẫu từ pack nằm ở
+ * `src/game/sprites.ts`.
  */
 
 const readVar = (name: string): number => {
@@ -38,14 +40,7 @@ export function readPalette() {
     sunken: readVar('--sunken'),
     raised: readVar('--raised'),
 
-    // TẠM — MASTER.md §1.3, xoá khi sprite Kenney vào
-    grassA: 0x4e7b45,
-    grassB: 0x55834b,
-    pathEdge: 0x96743f,
-    pathFill: 0xcba96d,
-    enemyGrunt: 0xb4443f,
-    enemyArmored: 0x8c6bb1,
-    enemyRunner: 0xd98040,
+    /** Vòng băng quanh enemy đang bị làm chậm. Hiệu ứng vector, không phải art. */
     frostBarrel: 0x7fd4e8,
   };
 }

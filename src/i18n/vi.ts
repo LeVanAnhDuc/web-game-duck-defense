@@ -140,6 +140,7 @@ export const vi = {
   'settings.language': 'Ngôn ngữ',
   'settings.music': 'Nhạc nền',
   'settings.sfx': 'Hiệu ứng âm thanh',
+  'settings.sound': 'Âm thanh',
   'settings.off': 'Tắt',
 
   // Tên ngôn ngữ viết bằng CHÍNH ngôn ngữ đó (endonym), nên hai từ điển giống

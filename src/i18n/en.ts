@@ -133,6 +133,7 @@ export const en: Record<StringKey, string> = {
   'settings.language': 'Language',
   'settings.music': 'Music',
   'settings.sfx': 'Sound effects',
+  'settings.sound': 'Sound',
   'settings.off': 'Off',
 
   // Tên ngôn ngữ viết bằng CHÍNH ngôn ngữ đó (endonym), nên hai từ điển giống

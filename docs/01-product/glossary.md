@@ -1,7 +1,7 @@
 # Thuật ngữ
 
 > **Trả lời:** Khái niệm này gọi là gì trong code, và hiện ra sao trên UI?
-> **Trạng thái:** 🟡 một phần
+> **Trạng thái:** 🟢 đủ
 > **Cập nhật:** 2026-09-08 · commit —
 > **Cập nhật khi:** xuất hiện một khái niệm nghiệp vụ mới trong code hoặc UI
 
@@ -16,9 +16,10 @@ tưởng tượng thì vô dụng.
 KHÔNG chứa: giải thích nghiệp vụ dài (-> overview.md).
 -->
 
-🟡 vì cột "Tên trong code" là **cam kết**, chưa phải mô tả: các tên UI đã chốt qua
-mockup được duyệt, còn code thì đang dựng. Đổi sang 🟢 khi `core/` và `ui/` đã tồn tại
-và tên trong đó khớp bảng này.
+Đã đối chiếu với code sau khi dựng xong: mọi tên ở cột "Tên trong code" đều tồn
+tại đúng như viết ở đây (`grep -rn "cores" src/` · `grep -rn "MapDef" src/` …), và
+`gold` / `cores` không lẫn nhau ở bất kỳ đâu — đó là lỗi kinh tế khó tìm nhất mà
+bảng này tồn tại để chặn.
 
 | Thuật ngữ | Định nghĩa một câu | Tên trong code | Tên trên UI (VI) | Tên trên UI (EN) |
 | --- | --- | --- | --- | --- |

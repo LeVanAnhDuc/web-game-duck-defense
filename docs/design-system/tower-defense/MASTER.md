@@ -111,20 +111,34 @@ sprite tint), không bao giờ làm chữ.
 dấu hiệu thứ hai — icon, chữ, hoặc hình dạng. Người mù màu đỏ-lục là nhóm lớn nhất,
 và game này đặt đỏ cạnh xanh lá suốt.
 
-### 1.3 Màu art trong canvas — TẠM, sẽ bị sprite thay thế
+### 1.3 Màu art trong canvas — LẤY MẪU từ sprite pack
 
-Bảy giá trị này chỉ tồn tại vì mockup phải vẽ bàn chơi bằng vector khi chưa nạp sprite
-Kenney. Chúng **không phải token** và không được dùng ở bất cứ đâu trong chrome:
+Sprite Kenney đã vào (`public/assets/kenney/`, CC0). Cỏ, bệ tháp, nòng tháp và
+địch giờ là sprite, nên chúng **không còn giá trị màu nào** ở đây. Ba giá trị còn
+lại, và cả ba đều được **lấy mẫu bằng script từ chính tilesheet**, không phải chọn
+bằng mắt:
 
-| Vẽ gì | Hex |
-| --- | --- |
-| Ô cỏ, hai sắc xen kẽ | `#4E7B45` · `#55834B` |
-| Đường đi, viền và lòng đường | `#96743F` · `#CBA96D` |
-| Enemy thường / enemy có giáp | `#B4443F` · `#8C6BB1` |
-| Nòng tháp Băng | `#7FD4E8` |
+| Vẽ gì | Hex | Lấy mẫu từ |
+| --- | --- | --- |
+| Lòng đường | `#E0D1AF` | ô cát 160 |
+| Viền đường | `#BB8044` | ô đất 158 |
+| Nền đặc dưới lớp ô cỏ | `#2ECC71` | ô cỏ 157 |
 
-Khi sprite Kenney vào, cả bảng này bị xoá. Nếu một trong bảy giá trị đó xuất hiện
-trong CSS của chrome, đó là lỗi — không phải lựa chọn.
+**Vì sao đường vẫn vẽ bằng vector chứ không bằng tile của pack** — và đây là một
+ràng buộc phát hiện lúc dựng, không phải lựa chọn thẩm mỹ:
+
+> Đường của Kenney là **tile 64px trên lưới** (đoạn thẳng + góc). Bản đồ trong
+> `data/maps/` là **polyline tự do** ở toạ độ bất kỳ (84, 128, 196…). Muốn dùng
+> tile đường thì phải vẽ lại cả năm bản đồ trên lưới 64 đơn vị, và khi đó **mọi
+> chiều dài đường đổi** — tức là cân bằng lại từ đầu, và cổng FR-32 phải chạy lại
+> cho cả năm bản đồ. Ghi ở `backlog.md` §Nợ kỹ thuật.
+
+Lấy mẫu màu từ pack là cách để đường vector không lệch tông với sprite.
+
+Ô cỏ lát ở **đúng 64 đơn vị = 64 texel**, tỉ lệ 1:1. Lát ở 50 đơn vị (cho vừa
+khít 400) buộc phải thu nhỏ 0,78 lần, và lọc LINEAR khi đó lấy mẫu **lấn sang
+frame kế bên** trong sheet — sheet không có padding — sinh ra những đường chỉ mờ
+chạy khắp bàn chơi.
 
 ---
 

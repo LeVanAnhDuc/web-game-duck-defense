@@ -18,40 +18,31 @@ KHÔNG chứa: tính năng ngoài phạm vi (-> 01-product/overview.md §Non-Goa
 
 ## Đang làm
 
-**Feature `tower-defense-v1`** — dựng toàn bộ v1 của game.
+_(trống)_ — feature `tower-defense-v1` đã đóng. Cả 32 FR ở `scope.md` là `xong`,
+trong đó FR-18 **xong ở phạm vi đã thu hẹp** (không có nhạc nền — xem §Nợ kỹ thuật).
 
-Đã xong: brainstorm (đầy đủ, có cổng duyệt mockup) · `design-bootstrap` →
-`MASTER.md` + ADR-0001 · canvas mockup 16 artboard **đã được duyệt** · tài liệu
-tier-1 (`overview` · `journeys` · `glossary` · `scope` · `nfr` · `architecture` ·
-`invariants`) · ADR-0002 → 0006.
-
-Đang ở: viết `docs/specs/tower-defense-v1/design.md`, rồi `plan.md`, rồi vào worktree
-và build theo TDD.
-
-Không có gì đang chặn.
+Trạng thái kiểm chứng lúc đóng: **220 test đơn vị** (Vitest, không cần trình
+duyệt) và **15 test e2e** (Playwright, Chromium) đều xanh; `tsc --noEmit` và
+`eslint` sạch; `vite build` ra 401 KB gzip, dưới trần 900 KB của NFR-PERF-08.
 
 ## Việc tiếp theo
 
 | Việc | Liên quan | Ưu tiên | Vì sao ưu tiên đó |
 | --- | --- | --- | --- |
-| `core/` + test: path, RNG, một tick đủ năm bước | FR-01…FR-07 · ADR-0003 | cao | Mọi thứ khác đứng trên nó. Và nó là phần duy nhất test được không cần trình duyệt |
-| `runBattle` headless + test cân bằng | FR-31 · FR-32 | cao | Chặn sớm cái hỏng nghiêm trọng nhất của thiết kế này (bản đồ bất khả thi). Rẻ khi làm sớm, đắt khi làm muộn |
-| `data/`: 3 tháp, 3 enemy, bản đồ 1, lịch đợt | FR-05 · FR-20 · FR-21 | cao | `core/` không chạy được mà không có số |
-| `game/`: Phaser scene, nạp atlas Kenney, vẽ + nội suy | ADR-0002 | cao | Lát cắt dọc đầu tiên chơi được bằng tay |
-| `bridge/` + HUD React ở 375 | ADR-0004 · FR-08…FR-10 | cao | Chơi được end-to-end trên điện thoại = US-01 đóng |
-| `storage/` + profile phòng vệ + test 6 dạng rác | FR-11 · FR-25 · NFR-REL-04 | trung bình | Chưa cần cho lát cắt dọc, nhưng cần trước khi có `cores` |
-| Cây nâng cấp + `cores` + mở bản đồ | FR-12 · FR-13 · FR-16 | trung bình | US-02, US-03 |
-| 4 bản đồ còn lại + cân bằng | FR-32 | trung bình | Cần `runBattle` xong trước, không thì cân bằng bằng tay |
-| i18n vi/en + cài đặt + âm thanh | FR-17…FR-19 | trung bình | US-04 |
-| Kiểm trên app đang chạy ở 375/768/1024/1440 × 2 chiều xoay | FR-30 · NFR-A11Y-* | cao khi tới đó | `feature-flow` §5: UI chưa nhìn thì chưa xong |
-| Deploy GitHub Pages | ADR-0006 | thấp | Sau khi chơi được |
+| **Chơi thật cả 5 bản đồ bằng tay** rồi tinh chỉnh `data/` | FR-32 · overview.md §6 | cao | Cân bằng hiện tại được đo bằng một người chơi MÔ PHỎNG hoàn hảo (`tests/balance/affordablePlayer.ts`). Nó chặn được cái bất khả thi, nhưng không nói được cái "chưa vui". Một lượt hoàn hảo hết 29,9 phút, còn `overview.md` §6 nhắm 60-90 phút — khoảng chênh đó chỉ người thật đo được |
+| Deploy lên GitHub Pages và mở thử trên điện thoại thật | ADR-0006 | cao | `base` sai chỉ lộ ra ở production, và cảm giác chạm chỉ đo được trên ngón tay thật |
+| Đo fps trên điện thoại tầm trung ở đợt cuối bản đồ 5 | NFR-PERF-05 | trung bình | Ngưỡng 30 fps chưa từng được đo trên thiết bị thật, chỉ suy ra từ kiến trúc |
+| Kiểm bằng screen reader thật | NFR-A11Y-07 | trung bình | Vùng `aria-live` đã có và e2e kiểm được focus, nhưng chưa ai nghe nó đọc |
+| Thêm ô 1024 vào canvas mockup | MASTER.md §6 | thấp | Mốc 1024 đã có bố cục thật trong code và có e2e, chỉ thiếu artboard |
 
 ## Nợ kỹ thuật — cố ý làm tạm
 
 | Chỗ nào | Đã đánh đổi gì | Vì sao chấp nhận | Khi nào buộc phải trả |
 | --- | --- | --- | --- |
+| `src/game/sprites.ts` | **Đường đi vẫn vẽ bằng vector**, không dùng tile đường của Kenney. Cỏ, bệ tháp, nòng, địch đã là sprite | Ràng buộc phát hiện lúc dựng: đường của pack là **tile 64px trên lưới**, còn `data/maps/` là **polyline tự do** ở toạ độ bất kỳ. Dùng tile đường ⇒ vẽ lại cả 5 bản đồ trên lưới 64 ⇒ mọi chiều dài đường đổi ⇒ cân bằng lại từ đầu và chạy lại cổng FR-32 cho cả 5 bản đồ. Màu đường được **lấy mẫu từ chính pack** nên không lệch tông | Khi thêm bản đồ mới — lúc đó vẽ nó trên lưới ngay từ đầu, và chuyển dần |
+| `src/game/audio.ts` · `SettingsScreen` | **Không có nhạc nền.** FR-18 thu hẹp còn một thanh trượt "âm thanh" | Hiệu ứng âm thanh tổng hợp được bằng WebAudio, không tốn byte bundle nào. Nhạc nền thì cần một file thật, và một bản nhạc tổng hợp mà người viết không nghe được là một canh bạc. Một thanh trượt điều khiển thứ không tồn tại còn tệ hơn không có nó. Trường `settings.music` vẫn nằm trong profile để không phải migrate schema chỉ vì bỏ một thanh trượt | Khi có một bản nhạc thật, hoặc khi người chơi hỏi vì sao game im |
 | `storage/` | **Không lưu state giữa trận.** Đóng tab giữa trận là mất trận đó | Serialize toàn bộ state mô phỏng nghĩa là mỗi lần sửa `core/` lại phải migrate một schema lớn. Xem ADR-0005 §3 | Khi có bản đồ dài quá ~15 phút một lượt, hoặc khi người chơi phàn nàn |
-| `docs/specs/tower-defense-v1/` | **Một feature folder cho cả v1** thay vì tách `core-battle` / `meta-progression` / `shell-i18n` thành ba chu trình spec→plan→build | Ba chu trình cho một game 5 bản đồ sinh ra ba lần thủ tục mà không tách được phụ thuộc: `meta-progression` không kiểm được mà không có `core-battle`. Bù lại bằng `plan.md` chia pha, checkbox theo pha | Khi có v2 thêm nhánh chức năng mới — lúc đó nhánh đó là một feature riêng thật |
-| `data/` | Số liệu cân bằng là **phỏng đoán đầu tiên**, chưa qua một lượt chơi thật nào | Không có cách nào có số đúng trước khi chơi được. FR-32 chặn được cái sai nghiêm trọng; cái "chưa vui" thì phải chơi mới biết | Ngay sau lát cắt dọc đầu tiên chơi được bằng tay |
-| `game/` (sẽ có) | Sprite Kenney thay dần cho hình vector vẽ tạm; `MASTER.md` §1.3 giữ 7 màu tạm | Chơi được quan trọng hơn đẹp, và ranh giới render đã tách nên thay sprite không đụng logic | Khi `MASTER.md` §1.3 còn tồn tại mà game đã chơi được hết 5 bản đồ |
-| `.env.example` | Vẫn 🔴 và **rỗng là đúng** — code chưa đọc biến môi trường nào | Vite dùng `import.meta.env` chứ không `process.env`, và game không có secret nào (NFR-SEC-04). Điền file này bằng phỏng đoán là tệ hơn để trống | Khi code đọc biến đầu tiên — khả năng cao là `BASE_URL` lúc deploy GitHub Pages |
+| `docs/specs/tower-defense-v1/` | **Một feature folder cho cả v1** thay vì ba chu trình spec→plan→build | Ba chu trình cho một game 5 bản đồ sinh ra ba lần thủ tục mà không tách được phụ thuộc: `meta-progression` không kiểm được mà không có `core-battle`. Bù lại bằng `plan.md` chia pha | Khi có v2 thêm nhánh chức năng mới — nhánh đó là một feature riêng thật |
+| `data/` | Cân bằng đã qua **bốn vòng** nhưng vẫn chỉ đo bằng người chơi mô phỏng | Không có cách nào có số đúng trước khi chơi được. FR-32 chặn cái bất khả thi; cái "chưa vui" thì phải chơi mới biết. Bản đồ 2 và 4 hiện mất **0 mạng** với bố cục tham chiếu — hơi phẳng, nhưng siết thêm để làm khó một người chơi hoàn hảo là cách làm game không ai qua được | Ngay sau lượt chơi tay đầu tiên |
+| `tests/core/i18n.test.ts` | Chỉ chặn **tỉ lệ độ dài** giữa hai locale, không chặn độ rộng thật khi render | Độ rộng thật phụ thuộc font và phải đo trong trình duyệt — và e2e đã làm đúng việc đó ở 375 cho cả hai locale | Khi thêm locale thứ ba |
+| ~~`.env.example` rỗng~~ **(đã trả)** | — | Tôi từng ghi ở đây rằng không một dòng nào đọc biến môi trường. **Sai**, và `docs-regen.sh` bắt được: `vite.config.ts` đọc `GITHUB_PAGES`, `scripts/preview-pages.mjs` đọc `PORT`. Cả hai giờ đã có trong `.env.example`, kèm ghi chú rằng `BASE_URL` là biến Vite tự sinh chứ không phải biến người dùng khai. Đúng loại lỗi mà một hook so chuỗi bắt được còn con người thì bỏ qua | — |

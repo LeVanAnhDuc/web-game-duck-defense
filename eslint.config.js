@@ -96,7 +96,7 @@ export default tseslint.config(
   },
 
   {
-    files: ['tests/**/*.ts', 'e2e/**/*.ts', '*.config.ts', 'eslint.config.js'],
+    files: ['tests/**/*.ts', 'e2e/**/*.ts', 'scripts/**/*.mjs', '*.config.ts', 'eslint.config.js'],
     languageOptions: { globals: { ...globals.node } },
     rules: { '@typescript-eslint/no-explicit-any': 'off' },
   },

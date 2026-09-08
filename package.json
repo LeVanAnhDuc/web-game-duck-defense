@@ -15,7 +15,8 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "lint": "eslint .",
-    "typecheck": "tsc -b --noEmit"
+    "typecheck": "tsc --noEmit",
+    "preview:pages": "node scripts/preview-pages.mjs"
   },
   "dependencies": {
     "phaser": "^3.90.0",

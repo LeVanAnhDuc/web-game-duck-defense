@@ -1,7 +1,8 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { BattleOutcome } from '../core/runBattle';
 import { coresAward } from '../core/rewards';
 import { MAP_ORDER, type MapId } from '../data/maps';
+import { setAudioVolume, unlockAudio } from '../game/audio';
 import { unlockedMaps, type Profile } from '../storage/profile';
 import { StorageNotice } from './battle/parts';
 import { useLocale } from './hooks/useLocale';
@@ -30,7 +31,15 @@ export function App() {
   const { profile, recovered, repaired, writable } = useProfileState();
   const [screen, setScreen] = useState<Screen>({ name: 'title' });
 
+  useEffect(() => {
+    setAudioVolume(profile.settings.sfx);
+  }, [profile.settings.sfx]);
+
   const startBattle = useCallback((mapId: MapId) => {
+    // `AudioContext` phải được tạo TỪ TRONG một tương tác thật: Safari và
+    // Chrome mobile chặn phát tự động, và một context tạo lúc nạp trang sẽ ở
+    // `suspended` mãi. Mọi đường vào trận đều đi qua đây, và đều là một cú bấm.
+    unlockAudio();
     updateProfile((p) => ({ ...p, lastMap: mapId }));
     setScreen({ name: 'battle', mapId });
   }, []);

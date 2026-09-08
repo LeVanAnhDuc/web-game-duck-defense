@@ -35,17 +35,14 @@ export function SettingsScreen({ onBack }: { onBack: () => void }) {
           />
         </section>
 
+        {/* MỘT thanh trượt, không phải hai.
+            v1 không có nhạc nền (FR-18 đã thu hẹp, lý do ghi ở `backlog.md`
+            §Nợ kỹ thuật), nên một thanh trượt "nhạc" sẽ điều khiển thứ không
+            tồn tại. Trường `settings.music` vẫn nằm trong profile để không phải
+            migrate schema chỉ vì bỏ một thanh trượt. */}
         <Volume
-          id="music"
-          label={t('settings.music')}
-          value={profile.settings.music}
-          onChange={(v) => updateProfile((p) => ({ ...p, settings: { ...p.settings, music: v } }))}
-          offLabel={t('settings.off')}
-        />
-
-        <Volume
-          id="sfx"
-          label={t('settings.sfx')}
+          id="sound"
+          label={t('settings.sound')}
           value={profile.settings.sfx}
           onChange={(v) => updateProfile((p) => ({ ...p, settings: { ...p.settings, sfx: v } }))}
           offLabel={t('settings.off')}

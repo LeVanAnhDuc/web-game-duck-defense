@@ -1,0 +1,89 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Đẩy liên tiếp thì huỷ lần đang chạy — không có lý do gì để deploy một bản cũ
+# hơn bản vừa push.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      # `npm ci`, KHÔNG `npm install`: workspace này có ba dự án dùng Yarn và
+      # chạy sai lệnh cài đặt cho ra cây phụ thuộc khác. Xem ADR-0006.
+      - run: npm ci
+
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+
+      # NFR-SEC-05 — không có lỗ hổng mức high trở lên.
+      - run: npm audit --audit-level=high
+
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+
+      - name: Ảnh chụp e2e khi có lỗi
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results
+          path: test-results/
+          retention-days: 7
+
+  build:
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+
+      # GITHUB_PAGES=true đặt `base` thành '/web-game-tower-defense/'.
+      # Thiếu biến này thì local vẫn chạy và production ra TRANG TRẮNG — lỗi chỉ
+      # lộ ra sau khi deploy. Xem ADR-0006 §4.
+      - run: GITHUB_PAGES=true npm run build
+
+      - name: Trần kích thước bundle (NFR-PERF-08)
+        run: |
+          bytes=$(gzip -c dist/assets/*.js | wc -c)
+          echo "JS gzip: $bytes bytes"
+          if [ "$bytes" -gt 921600 ]; then
+            echo "::error::JS gzip $bytes vượt trần 900 KB của NFR-PERF-08"
+            exit 1
+          fi
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

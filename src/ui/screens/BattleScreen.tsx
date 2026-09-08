@@ -4,11 +4,13 @@ import type { BattleOutcome } from '../../core/runBattle';
 import type { UpgradeState } from '../../core/upgrades';
 import type { MapId } from '../../data/maps';
 import { STARTER_TOWER_IDS, type TowerTypeId } from '../../data/towers';
+import { setAudioVolume, stopAllSounds } from '../../game/audio';
 import { startGame, type GameHandle } from '../../game/boot';
 import { Press } from '../components/Press';
 import { IconBack } from '../components/Icon';
 import { useLocale } from '../hooks/useLocale';
 import { useLayoutMode, type LayoutMode } from '../hooks/useLayoutMode';
+import { useProfileState } from '../hooks/useProfile';
 import { useSnapshot } from '../hooks/useSnapshot';
 import { SlotOverlay } from '../battle/SlotOverlay';
 import {
@@ -49,9 +51,13 @@ export function BattleScreen({ mapId, upgrades, onFinish, onQuit }: Props) {
   const { t } = useLocale();
   const mode = useLayoutMode();
   const snap = useSnapshot();
+  const { profile } = useProfileState();
   const hostRef = useRef<HTMLDivElement | null>(null);
   const handleRef = useRef<GameHandle | null>(null);
   const [pickedTower, setPickedTower] = useState<TowerTypeId | null>(null);
+  /** NFR-REL-03 — nạp asset thất bại thì HIỆN LỖI + cho thử lại, không treo. */
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -63,7 +69,14 @@ export function BattleScreen({ mapId, upgrades, onFinish, onQuit }: Props) {
     const seed = Date.now() & 0x7fffffff;
 
     resetBridge();
-    const handle = startGame(host, { mapId, upgrades, seed, onFinish });
+    setLoadError(null);
+    const handle = startGame(host, {
+      mapId,
+      upgrades,
+      seed,
+      onFinish,
+      onLoadError: (file) => setLoadError(file),
+    });
     handleRef.current = handle;
 
     return () => {
@@ -75,7 +88,13 @@ export function BattleScreen({ mapId, upgrades, onFinish, onQuit }: Props) {
     // dựng lại cả Phaser và mất trận đang chơi. Bậc nâng cấp được áp MỘT LẦN ở
     // `createBattle` (invariants #8) nên đổi giữa trận cũng không có nghĩa gì.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mapId]);
+  }, [mapId, attempt]);
+
+  useEffect(() => {
+    setAudioVolume(profile.settings.sfx);
+  }, [profile.settings.sfx]);
+
+  useEffect(() => stopAllSounds, []);
 
   /* Đổi bố cục làm khung canvas đổi kích thước mà KHÔNG có sự kiện resize của
      window (lưới đổi, cửa sổ không đổi). Phaser chỉ nghe window resize, nên
@@ -194,6 +213,32 @@ export function BattleScreen({ mapId, upgrades, onFinish, onQuit }: Props) {
       <IconBack size={20} />
     </Press>
   );
+
+  /* NFR-REL-03 — không có trạng thái nạp vô hạn. Lỗi hay gặp nhất ở đây không
+     phải mất mạng mà là `base` sai sau khi deploy lên GitHub Pages: local chạy,
+     production 404 đúng một file, và không có màn này thì màn hình chỉ đứng im. */
+  if (loadError) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-5 bg-void px-6 text-center">
+        <p className="disp text-[length:var(--text-xl2)] font-extrabold text-danger">
+          {t('error.assetFailed')}
+        </p>
+        <p className="num max-w-[420px] break-all text-[length:var(--text-sm)] text-dim">{loadError}</p>
+        <div className="flex gap-3">
+          <Press
+            variant="primary"
+            onClick={() => setAttempt((n) => n + 1)}
+            className="disp px-6 text-[length:var(--text-md)] font-extrabold"
+          >
+            {t('error.retry')}
+          </Press>
+          <Press onClick={onQuit} className="disp px-6 text-[length:var(--text-md)] font-bold">
+            {t('common.back')}
+          </Press>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`grid h-full bg-void ${GRID[mode]}`}>
