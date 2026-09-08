@@ -49,24 +49,30 @@ test('đặt được tháp CHỈ bằng bàn phím, và focus luôn thấy đư
   await expect.poll(() => gold(page)).toBe(200);
 });
 
-test('gọi được đợt bằng Space, và Esc bỏ chọn', async ({ page }) => {
+test('Esc bỏ chọn, và Space gọi đợt khi không có nút nào đang focus', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await enterBattle(page);
 
-  await page.getByRole('button', { name: 'Ô số 8' }).click();
-  await expect(page.getByRole('button', { name: /^Cung 60/ })).toBeVisible();
+  // `aria-pressed` của chính nút Ô là dấu hiệu ĐỘC LẬP BỐ CỤC cho việc đã chọn.
+  // Gợi ý "Chạm ô trống để xây" chỉ có ở bản dọc, còn thẻ tháp "Cung 60" thì ở
+  // bản rộng luôn hiện — cả hai đều không chứng minh được là đã chọn hay chưa.
+  const slot = page.getByRole('button', { name: 'Ô số 8' });
+  await slot.click();
+  await expect(slot).toHaveAttribute('aria-pressed', 'true');
 
   await page.keyboard.press('Escape');
+  await expect(slot).toHaveAttribute('aria-pressed', 'false');
+
+  // Phải RỜI focus khỏi nút Ô trước khi bấm Space.
+  //
+  // Cú bấm ở trên đặt focus vào chính nút Ô đó, và Space trên một nút đang
+  // focus giờ kích hoạt CHÍNH nút đó chứ không gọi đợt — xem
+  // `e2e/review-regressions.spec.ts`. Bản đầu của test này bấm Space ngay và
+  // "thành công" chỉ vì lúc đó phím tắt đang chiếm phím của mọi nút, tức là nó
+  // khẳng định đúng cái lỗi mà NFR-A11Y-02 tồn tại để tránh.
+  await page.locator('body').click({ position: { x: 5, y: 400 } });
   await page.keyboard.press('Space');
 
-  await expect
-    .poll(async () => {
-      const bar = page.getByRole('progressbar').first();
-      return await bar.getAttribute('aria-valuenow');
-    })
-    .not.toBeNull();
-
-  // Space đã gọi đợt, nên nút gọi đợt phải bị vô hiệu hoá trong lúc đợt chạy.
   await expect(page.getByRole('button', { name: /GỌI ĐỢT TIẾP THEO/ })).toBeDisabled();
 });
 

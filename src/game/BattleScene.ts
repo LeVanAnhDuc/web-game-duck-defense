@@ -83,6 +83,8 @@ export class BattleScene extends Phaser.Scene {
   private prevS = new Map<EntityId, number>();
   /** Phần tick đã tiêu trong frame hiện tại, dùng làm hệ số nội suy. */
   private alpha = 0;
+  /** ID đạn lớn nhất từng thấy — dùng để nhận ra "vừa có phát bắn mới". */
+  private lastProjectileId = 0;
 
   constructor(cfg: BattleSceneConfig) {
     super('battle');
@@ -158,20 +160,33 @@ export class BattleScene extends Phaser.Scene {
         const before = {
           killed: this.battle.state.stats.killed,
           leaked: this.battle.state.stats.leaked,
-          shots: this.battle.state.nextId,
         };
 
         for (let i = 0; i < steps; i++) step(this.battle);
 
         const after = this.battle.state.stats;
-        if (this.battle.state.nextId > before.shots) playSound('shoot');
+
+        // Phát bắn nhận ra bằng ID ĐẠN LỚN NHẤT từng thấy, không bằng `nextId`:
+        // `nextId` cũng tăng khi sinh enemy và khi xây tháp, nên dùng nó làm bộ
+        // đếm phát bắn sẽ kêu "bắn" ở mỗi con enemy ra sân — kể cả khi trên bản
+        // đồ không có một tháp nào.
+        let maxProjectileId = this.lastProjectileId;
+        for (const pr of this.battle.state.projectiles) {
+          if (pr.id > maxProjectileId) maxProjectileId = pr.id;
+        }
+        if (maxProjectileId > this.lastProjectileId) {
+          this.lastProjectileId = maxProjectileId;
+          playSound('shoot');
+        }
+
         if (after.killed > before.killed) playSound('kill');
         if (after.leaked > before.leaked) playSound('leak');
       }
 
-      // Tab bị ẩn lâu: bỏ phần dư thay vì để nó dồn lại thành death-spiral.
-      if (this.acc > FIXED_DT * 5) this.acc = FIXED_DT * 5;
-
+      // KHÔNG có clamp `acc` ở đây, và đó là cố ý. `acc` vừa bị trừ đi
+      // `whole * FIXED_DT` nên nó luôn nằm trong [0, FIXED_DT) — mọi clamp thêm
+      // sẽ là code chết. Việc chặn tab-bị-ẩn do `MAX_STEPS_PER_FRAME` lo: số
+      // tick vượt trần bị BỎ, nên trận không nhảy vọt về phía trước.
       this.alpha = this.acc / FIXED_DT;
       this.checkFinished();
     }
@@ -204,11 +219,24 @@ export class BattleScene extends Phaser.Scene {
       this.selection = this.resolveSelection({ kind: 'tower', towerId: tower.id });
       playSound('build');
     }
+
     if (intent.kind === 'upgrade') {
       const now = this.battle.state.towers.find((t) => t.id === intent.towerId)?.level ?? 0;
       if (now > levelBefore) playSound('upgrade');
     }
+
     if (intent.kind === 'sell') this.selection = null;
+
+    // GIẢI LẠI lựa chọn sau MỌI ý định làm đổi state, không chỉ sau khi xây.
+    //
+    // `this.selection` là một bản CHỤP đã giải sẵn (bậc, giá nâng, giá bán, sát
+    // thương), không phải một con trỏ. Thiếu bước này thì sau khi nâng cấp,
+    // panel vẫn hiện bậc cũ và GIÁ cũ — và tệ hơn: nút "Nâng" vẫn *bật* vì nó
+    // so tiền với giá cũ, còn `applyIntent` thì từ chối im lặng vì giá thật đã
+    // khác. Người chơi bấm mà không có gì xảy ra.
+    if (this.selection?.kind === 'tower') {
+      this.selection = this.resolveSelection({ kind: 'tower', towerId: this.selection.towerId });
+    }
 
     publishSnapshot(this.buildSnapshot());
   }
@@ -309,6 +337,7 @@ export class BattleScene extends Phaser.Scene {
       speed: this.speed,
       paused: this.paused,
       selection: this.selection,
+      occupiedSlots: state.towers.map((t) => t.slotIndex),
       nextWave: [...grouped].map(([enemyId, count]) => ({ enemyId, count })),
       buildOptions: rules.unlockedTowers.map((towerId) => {
         const cost = buildCost(rules, towerId);

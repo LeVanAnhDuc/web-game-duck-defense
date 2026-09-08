@@ -107,15 +107,19 @@ export function BattleScreen({ mapId, upgrades, onFinish, onQuit }: Props) {
 
   const pickSlot = useCallback(
     (slotIndex: number) => {
-      // Đã chọn trước loại tháp thì lần chạm ô này LÀ thao tác thứ hai: xây.
-      if (pickedTower) {
+      const occupied = snap?.occupiedSlots.includes(slotIndex) ?? false;
+
+      // Đã chọn trước loại tháp thì lần chạm ô TRỐNG này là thao tác thứ hai:
+      // xây. Ô ĐÃ CÓ THÁP thì chọn tháp đó — đẩy một ý định xây vào ô đã xây sẽ
+      // bị `applyIntent` từ chối im lặng, và lần chạm không cho phản hồi nào.
+      if (pickedTower && !occupied) {
         pushIntent({ kind: 'build', slotIndex, towerId: pickedTower });
         setPickedTower(null);
         return;
       }
       pushIntent({ kind: 'select', target: { kind: 'slot', slotIndex } });
     },
-    [pickedTower],
+    [pickedTower, snap],
   );
 
   /**
@@ -159,13 +163,29 @@ export function BattleScreen({ mapId, upgrades, onFinish, onQuit }: Props) {
      (MASTER.md §5), không phải đường duy nhất. */
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.target instanceof HTMLInputElement) return;
+      const target = event.target;
+      // Phím tắt KHÔNG được chiếm phím của phần tử đang focus. Space là chỗ dễ
+      // sai nhất: `preventDefault` trên keydown chặn luôn cú click ngầm của một
+      // <button>, nên người dùng bàn phím Tab tới "GỌI ĐỢT", "Nâng", "Bán" hay
+      // một ô rồi bấm Space sẽ gọi đợt thay vì bấm chính cái nút đó — đúng thứ
+      // NFR-A11Y-02 tồn tại để tránh.
+      const onControl =
+        target instanceof HTMLElement &&
+        (target.tagName === 'BUTTON' ||
+          target.tagName === 'INPUT' ||
+          target.tagName === 'SELECT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.isContentEditable);
+
+      if (target instanceof HTMLInputElement) return;
+
       if (event.key === 'Escape') {
         pushIntent({ kind: 'select', target: null });
         setPickedTower(null);
         return;
       }
       if (event.code === 'Space') {
+        if (onControl) return; // để chính nút đó xử lý
         event.preventDefault();
         callWave();
         return;
@@ -214,32 +234,6 @@ export function BattleScreen({ mapId, upgrades, onFinish, onQuit }: Props) {
     </Press>
   );
 
-  /* NFR-REL-03 — không có trạng thái nạp vô hạn. Lỗi hay gặp nhất ở đây không
-     phải mất mạng mà là `base` sai sau khi deploy lên GitHub Pages: local chạy,
-     production 404 đúng một file, và không có màn này thì màn hình chỉ đứng im. */
-  if (loadError) {
-    return (
-      <div className="flex h-full flex-col items-center justify-center gap-5 bg-void px-6 text-center">
-        <p className="disp text-[length:var(--text-xl2)] font-extrabold text-danger">
-          {t('error.assetFailed')}
-        </p>
-        <p className="num max-w-[420px] break-all text-[length:var(--text-sm)] text-dim">{loadError}</p>
-        <div className="flex gap-3">
-          <Press
-            variant="primary"
-            onClick={() => setAttempt((n) => n + 1)}
-            className="disp px-6 text-[length:var(--text-md)] font-extrabold"
-          >
-            {t('error.retry')}
-          </Press>
-          <Press onClick={onQuit} className="disp px-6 text-[length:var(--text-md)] font-bold">
-            {t('common.back')}
-          </Press>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className={`grid h-full bg-void ${GRID[mode]}`}>
       {/* `board` LUÔN là con đầu tiên và luôn là CÙNG một node — xem ghi chú
@@ -252,7 +246,43 @@ export function BattleScreen({ mapId, upgrades, onFinish, onQuit }: Props) {
           bấm được. Đúng loại lỗi mà chỉ e2e trên trình duyệt thật bắt được. */}
       <div className="relative min-h-0 min-w-0 overflow-hidden bg-letterbox [grid-area:board]">
         <div ref={hostRef} className="absolute inset-0" />
-        {snap && <SlotOverlay mapId={mapId} snap={snap} t={t} onPickSlot={pickSlot} />}
+        {snap && !loadError && <SlotOverlay mapId={mapId} snap={snap} t={t} onPickSlot={pickSlot} />}
+
+        {/* NFR-REL-03 — lỗi nạp asset hiện thành LỚP PHỦ, không phải một màn
+            riêng thay cả cây.
+            Bản đầu `return` sớm ra một màn lỗi, và điều đó tháo luôn cái div mà
+            Phaser bám vào: `hostRef.current` thành null, nên khi bấm "thử lại"
+            effect chạy lại, không thấy host, và thoát ngay — game cũ đã bị huỷ,
+            game mới không bao giờ khởi động, và màn lỗi ở lại vĩnh viễn. Giữ
+            khung board luôn mounted thì thử lại mới thật sự là thử lại. */}
+        {loadError && (
+          <div
+            role="alert"
+            className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 bg-void/95 px-6 text-center"
+          >
+            <p className="disp text-[length:var(--text-xl2)] font-extrabold text-danger">
+              {t('error.assetFailed')}
+            </p>
+            <p className="num max-w-[420px] break-all text-[length:var(--text-sm)] text-dim">
+              {loadError}
+            </p>
+            <div className="flex gap-3">
+              <Press
+                variant="primary"
+                onClick={() => {
+                  setLoadError(null);
+                  setAttempt((n) => n + 1);
+                }}
+                className="disp px-6 text-[length:var(--text-md)] font-extrabold"
+              >
+                {t('error.retry')}
+              </Press>
+              <Press onClick={onQuit} className="disp px-6 text-[length:var(--text-md)] font-bold">
+                {t('common.back')}
+              </Press>
+            </div>
+          </div>
+        )}
       </div>
 
       {snap && <BattleLiveRegion snap={snap} t={t} />}

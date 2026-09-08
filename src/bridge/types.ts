@@ -44,6 +44,14 @@ export type BattleSnapshot = {
   speed: BattleSpeed;
   paused: boolean;
   selection: Selection;
+  /**
+   * Chỉ số các ô ĐÃ CÓ THÁP.
+   *
+   * Cần vì lớp overlay DOM phải đọc được nhãn đúng cho MỌI ô, không chỉ ô đang
+   * chọn. Thiếu nó, người dùng screen reader Tab qua bàn chơi và mọi ô đều được
+   * đọc là "Ô số N" — không phân biệt được ô nào đã xây.
+   */
+  occupiedSlots: number[];
   /** Thành phần đợt tiếp theo, gộp theo loại (FR-24). */
   nextWave: { enemyId: EnemyTypeId; count: number }[];
   /** Giá xây từng loại tháp đã mở, và có đủ tiền hay không. */

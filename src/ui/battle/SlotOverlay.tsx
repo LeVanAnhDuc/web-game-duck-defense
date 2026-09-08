@@ -53,6 +53,7 @@ export function SlotOverlay({ mapId, snap, t, onPickSlot }: Props) {
     snap.selection?.kind === 'slot' ? snap.selection.slotIndex
     : snap.selection?.kind === 'tower' ? snap.selection.slotIndex
     : -1;
+  const occupied = new Set(snap.occupiedSlots);
 
   return (
     <div ref={hostRef} className="pointer-events-none absolute inset-0">
@@ -64,7 +65,21 @@ export function SlotOverlay({ mapId, snap, t, onPickSlot }: Props) {
           const size = Math.max(44, drawn);
           const left = box.offsetX + slot.x * box.scale - size / 2;
           const top = box.offsetY + slot.y * box.scale - size / 2;
-          const occupied = snap.selection?.kind === 'tower' && snap.selection.slotIndex === index;
+          // Nhãn đúng cho MỌI ô, không chỉ ô đang chọn: ô đã xây mà vẫn đọc là
+          // "Ô số N" thì người dùng screen reader không biết ô nào còn trống.
+          // Chi tiết tháp (loại, bậc) chỉ có trong snapshot cho ô ĐANG chọn,
+          // nên ô đã xây khác được đọc là "đã xây" — đủ để phân biệt.
+          const isSelectedTower =
+            snap.selection?.kind === 'tower' && snap.selection.slotIndex === index;
+          const label = isSelectedTower && snap.selection?.kind === 'tower'
+            ? t('battle.towerLabel', {
+                tower: t(`tower.${snap.selection.typeId}` as never),
+                level: snap.selection.level,
+                n: index + 1,
+              })
+            : occupied.has(index)
+              ? t('battle.slotBuilt', { n: index + 1 })
+              : t('battle.slotLabel', { n: index + 1 });
 
           return (
             <button
@@ -72,15 +87,7 @@ export function SlotOverlay({ mapId, snap, t, onPickSlot }: Props) {
               type="button"
               onClick={() => onPickSlot(index)}
               aria-pressed={selectedIndex === index}
-              aria-label={
-                occupied && snap.selection?.kind === 'tower'
-                  ? t('battle.towerLabel', {
-                      tower: t(`tower.${snap.selection.typeId}` as never),
-                      level: snap.selection.level,
-                      n: index + 1,
-                    })
-                  : t('battle.slotLabel', { n: index + 1 })
-              }
+              aria-label={label}
               className="pointer-events-auto absolute cursor-pointer rounded-[var(--radius-md)] focus-visible:outline-3 focus-visible:outline-act focus-visible:outline-offset-2"
               style={{ left, top, width: size, height: size }}
             />

@@ -10,6 +10,7 @@ import {
   IconLock, IconPause, IconPlay, IconSnow,
 } from '../components/Icon';
 import type { Translate } from '../hooks/useLocale';
+import { wavePercent, wavesDone } from './waveProgress';
 
 export const TOWER_ICON: Record<TowerTypeId, (p: { size?: number }) => ReactNode> = {
   arrow: IconArrow,
@@ -53,8 +54,6 @@ export function GoldChip({
   );
 }
 
-const wavesDone = (snap: BattleSnapshot) => snap.waveNumber - (snap.phase === 'wave' ? 1 : 0);
-
 /** Chỉ CON SỐ đợt. Tách khỏi thanh tiến độ để bố cục dọc xếp được thành hai dòng. */
 export function WaveNumber({ snap, t }: { snap: BattleSnapshot; t: Translate }) {
   return (
@@ -67,7 +66,7 @@ export function WaveNumber({ snap, t }: { snap: BattleSnapshot; t: Translate }) 
 
 export function WaveBar({ snap, t }: { snap: BattleSnapshot; t: Translate }) {
   const done = wavesDone(snap);
-  const pct = Math.max(0, Math.min(100, (done / snap.waveCount) * 100));
+  const pct = wavePercent(snap);
   return (
     <div
       className="h-1.5 overflow-hidden rounded-full bg-sunken"

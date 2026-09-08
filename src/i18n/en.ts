@@ -35,6 +35,7 @@ export const en: Record<StringKey, string> = {
   'battle.buildHere': 'BUILD HERE',
   'battle.deselect': 'Clear selection',
   'battle.slotLabel': 'Slot {n}',
+  'battle.slotBuilt': 'Slot {n} — built',
   'battle.towerLabel': '{tower} level {level} on slot {n}',
 
   'tower.arrow': 'Archer',

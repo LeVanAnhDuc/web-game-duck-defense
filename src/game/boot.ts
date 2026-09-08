@@ -1,12 +1,11 @@
 import Phaser from 'phaser';
-import type { BattleSpeed, Selection } from '../bridge';
+import type { BattleSpeed } from '../bridge';
 import { BattleScene, type BattleSceneConfig } from './BattleScene';
 
 export type GameHandle = {
   destroy: () => void;
   setSpeed: (speed: BattleSpeed) => void;
   setPaused: (paused: boolean) => void;
-  setSelection: (selection: Selection) => void;
   /**
    * Bảo Phaser đo lại khung chứa.
    *
@@ -59,7 +58,6 @@ export function startGame(parent: HTMLElement, cfg: BattleSceneConfig): GameHand
     },
     setSpeed: (speed) => scene.setSpeed(speed),
     setPaused: (paused) => scene.setPaused(paused),
-    setSelection: (selection) => scene.setSelection(selection),
     refreshScale: () => game.scale.refresh(),
   };
 }

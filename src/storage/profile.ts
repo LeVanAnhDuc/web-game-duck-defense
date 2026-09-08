@@ -1,7 +1,6 @@
 import type { UpgradeState } from '../core/upgrades';
 import type { Locale } from '../i18n';
 import { MAP_ORDER, type MapId } from '../data/maps';
-import { TOWERS, type TowerTypeId } from '../data/towers';
 import { UPGRADE_TREE, type UpgradeNodeId } from '../data/upgradeTree';
 
 /**
@@ -24,12 +23,23 @@ export type Profile = {
   locale: Locale;
   cores: number;
   upgrades: UpgradeState;
-  unlockedTowers: TowerTypeId[];
   maps: Record<MapId, MapRecord>;
   settings: { music: number; sfx: number };
   /** Bản đồ chơi gần nhất, để nút "chơi tiếp" biết đi đâu. */
   lastMap: MapId | null;
 };
+
+/*
+ * KHÔNG có `unlockedTowers` ở đây, và đó là điểm mấu chốt.
+ *
+ * Tháp nào đã mở là HÀM của `upgrades` — `applyUpgrades` đọc các node
+ * `unlockTower` và trả về danh sách. Lưu thêm một bản riêng là nguồn sự thật thứ
+ * hai cho cùng một câu hỏi, đúng thứ chính file này cấm ở đoạn trên, và nó
+ * không được đọc ở đâu cả nên có thể lệch âm thầm sau một lần sửa dữ liệu.
+ *
+ * Profile của phiên bản trước có thể còn mang trường đó; `parseProfile` bỏ qua
+ * khoá lạ nên không cần migrate và `schemaVersion` giữ nguyên là 1.
+ */
 
 export const PROFILE_KEY = 'phongtuyen.profile';
 export const SCHEMA_VERSION = 1;
@@ -62,7 +72,6 @@ export function emptyProfile(): Profile {
     locale: 'vi',
     cores: 0,
     upgrades: {},
-    unlockedTowers: (Object.keys(TOWERS) as TowerTypeId[]).filter((id) => TOWERS[id].unlockedAtStart),
     maps,
     settings: { music: 0.5, sfx: 0.8 },
     lastMap: null,
@@ -129,9 +138,6 @@ function parseProfile(raw: unknown): { profile: Profile; repaired: boolean } | n
 
   repairs = 0;
   const base = emptyProfile();
-  const towers = Array.isArray(raw.unlockedTowers)
-    ? raw.unlockedTowers.filter((t): t is TowerTypeId => typeof t === 'string' && t in TOWERS)
-    : base.unlockedTowers;
 
   if (raw.locale !== 'en' && raw.locale !== 'vi') repairs++;
   if (raw.lastMap !== null && raw.lastMap !== undefined
@@ -144,7 +150,6 @@ function parseProfile(raw: unknown): { profile: Profile; repaired: boolean } | n
     locale: raw.locale === 'en' ? 'en' : 'vi',
     cores: Math.floor(num(raw.cores, 0, 0, Number.MAX_SAFE_INTEGER)),
     upgrades: parseUpgrades(raw.upgrades),
-    unlockedTowers: towers.length > 0 ? towers : base.unlockedTowers,
     maps: parseMaps(raw.maps),
     settings: isPlainObject(raw.settings)
       ? { music: num(raw.settings.music, 0.5, 0, 1), sfx: num(raw.settings.sfx, 0.8, 0, 1) }

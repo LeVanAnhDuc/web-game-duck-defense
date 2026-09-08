@@ -42,6 +42,7 @@ export const vi = {
   'battle.buildHere': 'XÂY VÀO Ô NÀY',
   'battle.deselect': 'Bỏ chọn',
   'battle.slotLabel': 'Ô số {n}',
+  'battle.slotBuilt': 'Ô số {n} — đã xây',
   'battle.towerLabel': '{tower} bậc {level} ở ô số {n}',
 
   'tower.arrow': 'Cung',

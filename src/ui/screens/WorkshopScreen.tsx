@@ -40,14 +40,13 @@ export function buyUpgrade(id: UpgradeNodeId): void {
     if (!canBuy(profile, id)) return profile;
     const node = UPGRADE_TREE[id];
     const level = levelOf(profile, id);
+    // KHÔNG ghi thêm một danh sách "tháp đã mở" nào: nó là hàm của `upgrades`,
+    // và `applyUpgrades` tính ra lúc khởi tạo trận. Xem `storage/profile.ts`.
     const next: Profile = {
       ...profile,
       cores: profile.cores - node.costs[level],
       upgrades: { ...profile.upgrades, [id]: level + 1 },
     };
-    if (node.effect.kind === 'unlockTower' && !next.unlockedTowers.includes(node.effect.towerId)) {
-      next.unlockedTowers = [...next.unlockedTowers, node.effect.towerId];
-    }
     return next;
   });
 }
