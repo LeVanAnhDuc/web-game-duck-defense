@@ -157,11 +157,18 @@ What a commit author has to remember:
 - Write Conventional Commit subjects. A subject that follows no convention still
   appears in the notes, under **Other** — notes that quietly drop commits are
   worse than untidy notes.
-- `[skip release]` in the **subject** skips the release. Only the subject is
-  read: commit bodies here run long and discuss releases, and reading markers
-  from bodies would mean that writing about a major bump causes one.
+- `[skip release]` skips the release, and so do `[release minor]` and
+  `[release major]`. Only the subject is read, never the body: commit bodies
+  here run long and discuss releases, and reading markers from bodies would mean
+  that writing about a major bump caused one.
+- **Which subject** is the part that catches people out: the marker is read from
+  the subject of the commit that lands on `main`. Merging a pull request with a
+  merge commit makes that the merge commit — *"Merge pull request #3 from …"* —
+  so a marker written on a branch commit does nothing. Put it in the merge
+  subject instead: `gh pr merge 3 --merge --subject "… [skip release]"`.
 - A `docs:` commit still produces a patch release. That is the design, not a bug.
-  Add `[skip release]` if the same push already carries a `feat:`.
+  Skip it when the push changes no behaviour a player can see, or when the same
+  push already carries a `feat:` that will be released anyway.
 
 Both steps run locally, so neither has to be trusted blind:
 
