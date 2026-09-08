@@ -55,7 +55,7 @@ describe('loadProfile · dữ liệu rác', () => {
  * mà không biết, nên `repaired` được báo lên UI.
  */
 describe('loadProfile · trường sai kiểu thì SỬA, không huỷ', () => {
-  const repairCases: [string, unknown][] = [
+  const repairCases: [string, Record<string, unknown>][] = [
     ['cores là chuỗi', { cores: 'rất nhiều' }],
     ['cores là NaN sau JSON (null)', { cores: null }],
     ['locale lạ', { locale: 'fr' }],
