@@ -142,3 +142,33 @@ test('thanh tiến độ đợt bắt đầu ở 0, không ở 1', async ({ page
   const bar = page.getByRole('progressbar').first();
   await expect(bar).toHaveAttribute('aria-valuenow', '0');
 });
+
+/**
+ * Lỗi này chỉ lộ ra trên bản đã deploy, ở viewport desktop.
+ *
+ * `Scale.FIT` của Phaser đo khung chứa MỘT LẦN lúc ScaleManager boot. Ở
+ * 1280×720 nó đo ra 720 — chiều cao cửa sổ, không phải 580 của khung bàn — nên
+ * canvas thành 720×720 và bị `overflow-hidden` của khung bàn cắt mất hàng ô
+ * trên và dưới. Một lần resize cửa sổ là tự đúng lại, nên nó vô hình với mọi
+ * test tự resize trước khi đo.
+ *
+ * Hậu quả không chỉ là thẩm mỹ: `SlotOverlay` đặt nút theo ĐÚNG khung canvas
+ * đó, nên các ô bị cắt cũng nằm ngoài vùng thấy được và không bấm được.
+ */
+test('canvas vừa khung bàn ngay từ lúc boot, không cần một lần resize', async ({ page }) => {
+  await enterBattle(page);
+  await page.waitForTimeout(800);
+
+  const box = await page.evaluate(() => {
+    const canvas = document.querySelector('canvas');
+    if (!canvas || !canvas.parentElement) return null;
+    const c = canvas.getBoundingClientRect();
+    const p = canvas.parentElement.getBoundingClientRect();
+    return { cw: c.width, ch: c.height, pw: p.width, ph: p.height };
+  });
+
+  expect(box).not.toBeNull();
+  // 1px cho sai số làm tròn của getBoundingClientRect.
+  expect(box!.ch).toBeLessThanOrEqual(box!.ph + 1);
+  expect(box!.cw).toBeLessThanOrEqual(box!.pw + 1);
+});
