@@ -38,6 +38,12 @@ describe('kho snapshot', () => {
     expect(fn).toHaveBeenCalledTimes(1);
   });
 
+  it('bỏ đăng ký hai lần không sao', () => {
+    const off = subscribeSnapshot(vi.fn());
+    off();
+    expect(() => off()).not.toThrow();
+  });
+
   it('giữ snapshot mới nhất cho người vào sau', () => {
     publishSnapshot(fakeSnapshot(7));
     expect(getSnapshot()?.tick).toBe(7);
@@ -46,16 +52,16 @@ describe('kho snapshot', () => {
   it('nhiều người đăng ký đều nhận được', () => {
     const a = vi.fn();
     const b = vi.fn();
-    subscribeSnapshot(a);
-    subscribeSnapshot(b);
+    const offA = subscribeSnapshot(a);
+    const offB = subscribeSnapshot(b);
     publishSnapshot(fakeSnapshot(3));
     expect(a).toHaveBeenCalledTimes(1);
     expect(b).toHaveBeenCalledTimes(1);
+    offA();
+    offB();
   });
 
-  it('reset xoá hàng đợi, snapshot và người đăng ký', () => {
-    const fn = vi.fn();
-    subscribeSnapshot(fn);
+  it('reset xoá hàng đợi và snapshot', () => {
     pushIntent({ kind: 'startWave' });
     publishSnapshot(fakeSnapshot(1));
 
@@ -63,7 +69,29 @@ describe('kho snapshot', () => {
 
     expect(getSnapshot()).toBeNull();
     expect(drainIntents()).toEqual([]);
+  });
+
+  /**
+   * Test này từng khẳng định điều NGƯỢC LẠI — rằng `resetBridge` xoá cả người
+   * đăng ký — và chính điều đó là lỗi làm màn trận đấu trắng trơn.
+   *
+   * `useSnapshot` đăng ký qua `useSyncExternalStore`, và việc đăng ký đó xảy ra
+   * TRƯỚC effect khởi động Phaser (nơi gọi `resetBridge`). Xoá listener ở đây gỡ
+   * đúng subscriber của React, và `useSyncExternalStore` chỉ đăng ký lại khi hàm
+   * `subscribe` đổi identity — tức là không bao giờ. Snapshot ngừng tới UI, và
+   * không có một dòng lỗi nào.
+   */
+  it('reset KHÔNG gỡ người đăng ký — họ tự gỡ khi unmount', () => {
+    const fn = vi.fn();
+    const off = subscribeSnapshot(fn);
+
+    resetBridge();
     publishSnapshot(fakeSnapshot(2));
-    expect(fn).toHaveBeenCalledTimes(1); // chỉ lần trước reset
+
+    expect(fn).toHaveBeenCalledTimes(1);
+
+    off();
+    publishSnapshot(fakeSnapshot(3));
+    expect(fn).toHaveBeenCalledTimes(1);
   });
 });
