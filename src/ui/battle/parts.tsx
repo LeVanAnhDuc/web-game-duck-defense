@@ -25,47 +25,74 @@ const enemyNameKey = (id: string): StringKey => `enemy.${id}` as StringKey;
 
 /* ── HUD ──────────────────────────────────────────────────────────────────── */
 
-export function LivesChip({ snap, t }: { snap: BattleSnapshot; t: Translate }) {
+export function LivesChip({
+  snap, t, size = 'md',
+}: { snap: BattleSnapshot; t: Translate; size?: 'md' | 'sm' }) {
   return (
     <Chip
       icon={<IconHeart size={18} />}
       iconClassName="text-danger"
       value={snap.lives}
       label={`${t('common.lives')}: ${snap.lives}`}
+      size={size}
     />
   );
 }
 
-export function GoldChip({ snap, t }: { snap: BattleSnapshot; t: Translate }) {
+export function GoldChip({
+  snap, t, size = 'md',
+}: { snap: BattleSnapshot; t: Translate; size?: 'md' | 'sm' }) {
   return (
     <Chip
       icon={<IconCoin size={18} />}
       iconClassName="text-gold"
       value={snap.gold}
       label={`${t('common.gold')}: ${snap.gold}`}
+      size={size}
     />
   );
 }
 
-export function WaveMeter({ snap, t, wide = false }: { snap: BattleSnapshot; t: Translate; wide?: boolean }) {
-  const done = snap.waveNumber - (snap.phase === 'wave' ? 1 : 0);
+const wavesDone = (snap: BattleSnapshot) => snap.waveNumber - (snap.phase === 'wave' ? 1 : 0);
+
+/** Chỉ CON SỐ đợt. Tách khỏi thanh tiến độ để bố cục dọc xếp được thành hai dòng. */
+export function WaveNumber({ snap, t }: { snap: BattleSnapshot; t: Translate }) {
+  return (
+    <span className="disp num whitespace-nowrap text-[length:var(--text-lg)] font-bold leading-none">
+      {t('battle.wave')} {snap.waveNumber}
+      <span className="text-[length:var(--text-sm)] font-semibold text-dim"> / {snap.waveCount}</span>
+    </span>
+  );
+}
+
+export function WaveBar({ snap, t }: { snap: BattleSnapshot; t: Translate }) {
+  const done = wavesDone(snap);
   const pct = Math.max(0, Math.min(100, (done / snap.waveCount) * 100));
   return (
-    <div className={`flex flex-col gap-1.5 ${wide ? 'min-w-[190px]' : 'min-w-[140px]'}`}>
-      <span className="disp num text-[length:var(--text-lg)] font-bold leading-none">
-        {t('battle.wave')} {snap.waveNumber}
-        <span className="text-[length:var(--text-sm)] font-semibold text-dim"> / {snap.waveCount}</span>
-      </span>
-      <div
-        className="h-1.5 overflow-hidden rounded-full bg-sunken"
-        role="progressbar"
-        aria-valuemin={0}
-        aria-valuemax={snap.waveCount}
-        aria-valuenow={done}
-        aria-label={t('battle.wave')}
-      >
-        <div className="h-full bg-act" style={{ width: `${pct}%` }} />
-      </div>
+    <div
+      className="h-1.5 overflow-hidden rounded-full bg-sunken"
+      role="progressbar"
+      aria-valuemin={0}
+      aria-valuemax={snap.waveCount}
+      aria-valuenow={done}
+      aria-label={t('battle.wave')}
+    >
+      <div className="h-full bg-act" style={{ width: `${pct}%` }} />
+    </div>
+  );
+}
+
+/**
+ * Số đợt + thanh tiến độ xếp dọc.
+ *
+ * `min-w` chỉ đặt ở bố cục `wide`. Dải mép của bố cục ngang chỉ rộng 136px, nên
+ * một `min-w-[140px]` ở đó sẽ đẩy nội dung tràn ra ngoài dải.
+ */
+export function WaveMeter({ snap, t, wide = false }: { snap: BattleSnapshot; t: Translate; wide?: boolean }) {
+  return (
+    <div className={`flex min-w-0 flex-col gap-1.5 ${wide ? 'min-w-[190px]' : 'w-full'}`}>
+      <WaveNumber snap={snap} t={t} />
+      <WaveBar snap={snap} t={t} />
     </div>
   );
 }
@@ -85,12 +112,24 @@ export function PauseButton({
   );
 }
 
+/**
+ * Chọn tốc độ trận.
+ *
+ * `min-w` trên từng ô là bắt buộc: ô dùng `flex-1`, và khi cả nhóm nằm trong
+ * một hàng flex không đặt bề rộng thì nó co về min-content — "x1" rộng ~16px,
+ * ba ô dồn lại thành một cục chữ đè lên nhau.
+ *
+ * `compact` cho dải mép của bố cục ngang: dải đó rộng 168px, trừ padding còn
+ * 144px, nên 3×54 + viền = 166px sẽ đẩy tràn cả cột và kéo theo nút "gọi đợt"
+ * ra khỏi mép. 3×44 + viền = 136px thì vừa, và vẫn đúng sàn 44px của
+ * NFR-A11Y-03 theo chiều cao.
+ */
 export function SpeedControl({
-  snap, t, onChange, cellWidth,
-}: { snap: BattleSnapshot; t: Translate; onChange: (s: BattleSpeed) => void; cellWidth?: number }) {
+  snap, t, onChange, compact = false,
+}: { snap: BattleSnapshot; t: Translate; onChange: (s: BattleSpeed) => void; compact?: boolean }) {
   return (
     <Segmented<'1' | '2' | '3'>
-      ariaLabel={t('battle.wave')}
+      ariaLabel={t('battle.speed')}
       value={String(snap.speed) as '1' | '2' | '3'}
       onChange={(v) => onChange(Number(v) as BattleSpeed)}
       options={[
@@ -98,8 +137,8 @@ export function SpeedControl({
         { value: '2', label: 'x2' },
         { value: '3', label: 'x3' },
       ]}
-      cellClassName={cellWidth ? `!flex-none` : ''}
-      className={cellWidth ? '' : 'flex-none'}
+      className="flex-none"
+      cellClassName={compact ? 'min-w-[44px] !text-[length:var(--text-sm)]' : 'min-w-[54px]'}
     />
   );
 }
@@ -130,16 +169,37 @@ export function CallWaveButton({
       variant="primary"
       disabled={!enabled}
       onClick={onCall}
-      className={`disp flex items-center justify-center gap-2.5 text-[length:var(--text-lg)] font-extrabold ${className}`}
+      className={[
+        'disp flex items-center justify-center gap-2 px-2 font-extrabold',
+        short ? 'text-[length:var(--text-md)]' : 'text-[length:var(--text-lg)] gap-2.5',
+        className,
+      ].join(' ')}
     >
-      <IconPlay size={18} />
-      {short ? t('battle.callWaveShort') : t('battle.callWave')}
+      <IconPlay size={short ? 16 : 18} />
+      <span className="truncate">{short ? t('battle.callWaveShort') : t('battle.callWave')}</span>
     </Press>
   );
 }
 
 /* ── panel xây tháp ───────────────────────────────────────────────────────── */
 
+/**
+ * Thẻ chọn loại tháp.
+ *
+ * `affordable` chỉ nói về TIỀN, không nói về việc đã chọn ô chưa. Bản đầu gộp
+ * hai thứ đó lại và thẻ hiện icon khoá khi người chơi đang có 260 vàng mà tháp
+ * chỉ 60 — nó nói sai lý do. Hai trạng thái, hai cách hiện:
+ *
+ *   • không đủ tiền  → nền `--sunken`, chữ `--ui-dim`, icon KHOÁ, vô hiệu hoá
+ *   • đủ tiền        → nền `--raised`, chữ sáng, icon XU
+ *
+ * Chưa chọn ô thì thẻ vẫn bấm được: nó chọn TRƯỚC loại tháp, rồi chạm ô sau —
+ * đúng thứ tự mà phím tắt `1 2 3` đã làm.
+ *
+ * Không dùng `opacity` cho trạng thái tắt: nó kéo tương phản xuống dưới sàn mà
+ * mọi hex trong code vẫn đúng (MASTER.md §1.1b). Và trạng thái luôn có kênh thứ
+ * hai ngoài màu — icon khoá vs icon xu (NFR-A11Y-06).
+ */
 export function TowerCard({
   towerId, cost, affordable, selected, t, onPick,
 }: {
@@ -147,8 +207,6 @@ export function TowerCard({
   t: Translate; onPick: () => void;
 }) {
   const Glyph = TOWER_ICON[towerId];
-  // Trạng thái "không đủ tiền" đổi TOKEN NỀN + TOKEN CHỮ, không dùng opacity —
-  // MASTER.md §1.1b. Và nó kèm icon khoá, không chỉ đổi màu — NFR-A11Y-06.
   return (
     <Press
       variant={affordable ? 'raised' : 'sunken'}

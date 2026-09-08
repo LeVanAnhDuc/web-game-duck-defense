@@ -8,12 +8,13 @@ import { startGame, type GameHandle } from '../../game/boot';
 import { Press } from '../components/Press';
 import { IconBack } from '../components/Icon';
 import { useLocale } from '../hooks/useLocale';
-import { useLayoutMode } from '../hooks/useLayoutMode';
+import { useLayoutMode, type LayoutMode } from '../hooks/useLayoutMode';
 import { useSnapshot } from '../hooks/useSnapshot';
 import { SlotOverlay } from '../battle/SlotOverlay';
 import {
   BattleLiveRegion, CallWaveButton, GoldChip, LivesChip, NextWaveStrip,
-  PauseButton, SelectedTowerPanel, SpeedControl, TowerCard, TowerDetail, WaveMeter,
+  PauseButton, SelectedTowerPanel, SpeedControl, TowerCard, TowerDetail,
+  WaveBar, WaveMeter, WaveNumber,
 } from '../battle/parts';
 
 type Props = {
@@ -21,6 +22,27 @@ type Props = {
   upgrades: UpgradeState;
   onFinish: (outcome: BattleOutcome) => void;
   onQuit: () => void;
+};
+
+/**
+ * Ba bố cục, MỘT lưới.
+ *
+ * Phaser append `<canvas>` vào một div bằng tay, nên div đó KHÔNG ĐƯỢC unmount.
+ * Bản đầu dựng ba nhánh JSX riêng và đặt khung canvas ở vị trí khác nhau trong
+ * mỗi nhánh; khi snapshot đầu tiên tới và component đổi nhánh, React unmount div
+ * cũ và mang theo cả canvas. Màn hình trắng, không một dòng lỗi nào.
+ *
+ * Cách sửa: MỘT lưới CSS với bốn vùng đặt tên, thứ tự DOM cố định (`board` luôn
+ * là con đầu tiên), và chỉ `grid-template-areas` đổi theo bố cục. Nội dung của
+ * `top`/`bottom`/`side` vẫn được phép đổi — chỉ khung canvas là không.
+ */
+const GRID: Record<LayoutMode, string> = {
+  portrait:
+    '[grid-template-areas:"top"_"board"_"bottom"] grid-rows-[auto_minmax(0,1fr)_auto] grid-cols-[minmax(0,1fr)]',
+  landscapeCompact:
+    '[grid-template-areas:"top_board_bottom"] grid-rows-[minmax(0,1fr)] grid-cols-[136px_minmax(0,1fr)_168px]',
+  wide:
+    '[grid-template-areas:"top_top"_"board_side"_"bottom_bottom"] grid-rows-[auto_minmax(0,1fr)_auto] grid-cols-[minmax(0,1fr)_232px] lg:grid-cols-[minmax(0,1fr)_352px]',
 };
 
 export function BattleScreen({ mapId, upgrades, onFinish, onQuit }: Props) {
@@ -55,15 +77,42 @@ export function BattleScreen({ mapId, upgrades, onFinish, onQuit }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mapId]);
 
+  /* Đổi bố cục làm khung canvas đổi kích thước mà KHÔNG có sự kiện resize của
+     window (lưới đổi, cửa sổ không đổi). Phaser chỉ nghe window resize, nên
+     phải bảo nó đo lại — thiếu bước này canvas giữ kích thước của bố cục cũ. */
+  useEffect(() => {
+    handleRef.current?.refreshScale();
+  }, [mode]);
+
   const selection = snap?.selection ?? null;
 
-  const pickSlot = useCallback((slotIndex: number) => {
-    pushIntent({ kind: 'select', target: { kind: 'slot', slotIndex } });
-  }, []);
+  const pickSlot = useCallback(
+    (slotIndex: number) => {
+      // Đã chọn trước loại tháp thì lần chạm ô này LÀ thao tác thứ hai: xây.
+      if (pickedTower) {
+        pushIntent({ kind: 'build', slotIndex, towerId: pickedTower });
+        setPickedTower(null);
+        return;
+      }
+      pushIntent({ kind: 'select', target: { kind: 'slot', slotIndex } });
+    },
+    [pickedTower],
+  );
 
+  /**
+   * Chạm một thẻ tháp.
+   *
+   * Đã chọn ô thì XÂY ngay. Chưa chọn ô thì chỉ ghi nhớ loại tháp, và lần chạm
+   * ô kế tiếp mới xây — cùng thứ tự với phím tắt `1 2 3`. Không có đường nào để
+   * một lần chạm vừa chọn ô vừa xây (US-01: "chạm vào ô là chọn ô, không bao
+   * giờ vô tình xây").
+   */
   const build = useCallback(
     (towerId: TowerTypeId) => {
-      if (selection?.kind !== 'slot') return;
+      if (selection?.kind !== 'slot') {
+        setPickedTower((current) => (current === towerId ? null : towerId));
+        return;
+      }
       pushIntent({ kind: 'build', slotIndex: selection.slotIndex, towerId });
       setPickedTower(null);
     },
@@ -81,7 +130,6 @@ export function BattleScreen({ mapId, upgrades, onFinish, onQuit }: Props) {
   }, [selection]);
 
   const callWave = useCallback(() => pushIntent({ kind: 'startWave' }), []);
-
   const setSpeed = useCallback((speed: BattleSpeed) => handleRef.current?.setSpeed(speed), []);
   const togglePause = useCallback(() => {
     if (!snap) return;
@@ -114,57 +162,32 @@ export function BattleScreen({ mapId, upgrades, onFinish, onQuit }: Props) {
     return () => window.removeEventListener('keydown', onKey);
   }, [build, callWave, selection]);
 
-  const canvas = (
-    <div className="relative min-h-0 flex-1 bg-letterbox">
-      <div ref={hostRef} className="absolute inset-0" />
-      {snap && <SlotOverlay mapId={mapId} snap={snap} t={t} onPickSlot={pickSlot} />}
+  const towerRow = snap ? (
+    // `data-testid` để e2e khoanh vùng truy vấn: nhãn của nút Ô trên overlay
+    // cũng chứa tên tháp ("Pháo bậc 1 ở ô số 9"), nên tìm theo tên trên cả trang
+    // là nhập nhằng. Khoanh vùng rẻ và rõ hơn là bịa một regex.
+    <div data-testid="tower-cards" className="grid grid-cols-3 gap-2.5">
+      {snap.buildOptions.map((option) => (
+        <TowerCard
+          key={option.towerId}
+          towerId={option.towerId}
+          cost={option.cost}
+          affordable={option.affordable}
+          selected={pickedTower === option.towerId}
+          t={t}
+          onPick={() => build(option.towerId)}
+        />
+      ))}
     </div>
-  );
+  ) : null;
 
-  if (!snap) {
-    return (
-      <div className="flex h-full items-center justify-center bg-void">
-        {canvas}
-      </div>
-    );
-  }
-
-  const buildPanel = (
+  const buildPanel = snap ? (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center">
-        <h2 className="disp text-[length:var(--text-lg)] font-extrabold">{t('battle.buildTower')}</h2>
-      </div>
-      <div className="grid grid-cols-3 gap-2.5">
-        {snap.buildOptions.map((option) => (
-          <TowerCard
-            key={option.towerId}
-            towerId={option.towerId}
-            cost={option.cost}
-            affordable={option.affordable && selection?.kind === 'slot'}
-            selected={pickedTower === option.towerId}
-            t={t}
-            onPick={() => build(option.towerId)}
-          />
-        ))}
-      </div>
+      <h2 className="disp text-[length:var(--text-lg)] font-extrabold">{t('battle.buildTower')}</h2>
+      {towerRow}
       <TowerDetail towerId={pickedTower ?? snap.buildOptions[0]?.towerId ?? null} t={t} />
     </div>
-  );
-
-  const rightColumn = (
-    <div className="flex w-[232px] flex-none flex-col gap-4 overflow-y-auto border-l-2 border-edge bg-panel p-4 lg:w-[352px]">
-      {buildPanel}
-      {selection?.kind === 'tower' && (
-        <>
-          <div className="h-0.5 bg-edge" />
-          <SelectedTowerPanel snap={snap} t={t} onUpgrade={upgrade} onSell={sell} />
-        </>
-      )}
-      <p className="mt-auto rounded-[var(--radius-md)] border-2 border-edge bg-sunken p-3.5 text-[length:var(--text-sm)] leading-relaxed text-dim">
-        {selection?.kind === 'tower' ? t('battle.rangeHint') : t('battle.keyHint')}
-      </p>
-    </div>
-  );
+  ) : null;
 
   const backButton = (
     <Press onClick={onQuit} aria-label={t('common.back')} className="flex w-11 items-center justify-center">
@@ -172,12 +195,92 @@ export function BattleScreen({ mapId, upgrades, onFinish, onQuit }: Props) {
     </Press>
   );
 
-  /* ── wide: thanh HUD trên, canvas + cột phải, CTA dưới ─────────────────── */
-  if (mode === 'wide') {
-    return (
-      <div className="flex h-full flex-col bg-void">
-        <BattleLiveRegion snap={snap} t={t} />
-        <header className="flex h-16 flex-none items-center gap-3.5 border-b-2 border-edge bg-panel px-5">
+  return (
+    <div className={`grid h-full bg-void ${GRID[mode]}`}>
+      {/* `board` LUÔN là con đầu tiên và luôn là CÙNG một node — xem ghi chú
+          trên `GRID`. Không được bọc nó trong bất kỳ nhánh điều kiện nào.
+
+          `overflow-hidden` là hàng rào cứng, không phải trang trí: Phaser đo
+          khung chứa lúc boot, và nếu lúc đó lưới chưa xếp xong nó lấy một kích
+          thước lớn hơn thật. Canvas khi đó phủ xuống cả thanh đáy và CHẶN
+          pointer lên nút "gọi đợt" — nút vẫn hiện, vẫn enabled, chỉ là không
+          bấm được. Đúng loại lỗi mà chỉ e2e trên trình duyệt thật bắt được. */}
+      <div className="relative min-h-0 min-w-0 overflow-hidden bg-letterbox [grid-area:board]">
+        <div ref={hostRef} className="absolute inset-0" />
+        {snap && <SlotOverlay mapId={mapId} snap={snap} t={t} onPickSlot={pickSlot} />}
+      </div>
+
+      {snap && <BattleLiveRegion snap={snap} t={t} />}
+
+      {/* Thanh HUD dọc là HAI dòng, không phải một: ở 375px một dòng gồm back +
+          pause + hai chip + số đợt cần ~449px và tràn ngang 26px. Mockup đã
+          duyệt cũng hai dòng — thanh tiến độ chiếm trọn dòng dưới. */}
+      {snap && mode === 'portrait' && (
+        <header className="min-w-0 border-b-2 border-edge bg-panel px-3 py-2.5 [grid-area:top]">
+          <div className="flex min-w-0 items-center gap-2">
+            {backButton}
+            <PauseButton snap={snap} t={t} onToggle={togglePause} />
+            <LivesChip snap={snap} t={t} size="sm" />
+            <GoldChip snap={snap} t={t} size="sm" />
+            <span className="ml-auto">
+              <WaveNumber snap={snap} t={t} />
+            </span>
+          </div>
+          <div className="mt-2.5">
+            <WaveBar snap={snap} t={t} />
+          </div>
+        </header>
+      )}
+
+      {snap && mode === 'portrait' && (
+        <footer className="flex flex-col gap-3 border-t-2 border-edge bg-panel px-3 pb-4 pt-3 [grid-area:bottom]">
+          {selection?.kind === 'tower' ? (
+            <SelectedTowerPanel snap={snap} t={t} onUpgrade={upgrade} onSell={sell} />
+          ) : selection?.kind === 'slot' ? (
+            buildPanel
+          ) : (
+            <NextWaveStrip snap={snap} t={t} />
+          )}
+          <div className="flex items-center gap-2.5">
+            <SpeedControl snap={snap} t={t} onChange={setSpeed} />
+            {!selection && (
+              <span className="ml-auto text-[length:var(--text-sm)] text-dim">
+                {t('battle.tapSlotToBuild')}
+              </span>
+            )}
+          </div>
+          <CallWaveButton snap={snap} t={t} onCall={callWave} />
+        </footer>
+      )}
+
+      {snap && mode === 'landscapeCompact' && (
+        <aside className="flex min-w-0 flex-col gap-2 overflow-y-auto border-r-2 border-edge bg-panel p-3 [grid-area:top]">
+          {backButton}
+          <PauseButton snap={snap} t={t} onToggle={togglePause} />
+          <LivesChip snap={snap} t={t} />
+          <GoldChip snap={snap} t={t} />
+          <div className="mt-auto">
+            <WaveMeter snap={snap} t={t} />
+          </div>
+        </aside>
+      )}
+
+      {snap && mode === 'landscapeCompact' && (
+        <aside className="flex min-w-0 flex-col gap-2.5 overflow-y-auto border-l-2 border-edge bg-panel p-3 [grid-area:bottom]">
+          <SpeedControl snap={snap} t={t} onChange={setSpeed} compact />
+          {towerRow}
+          {selection?.kind === 'tower' && (
+            <SelectedTowerPanel snap={snap} t={t} onUpgrade={upgrade} onSell={sell} />
+          )}
+          <div className="mt-auto flex flex-col gap-2">
+            <NextWaveStrip snap={snap} t={t} />
+            <CallWaveButton snap={snap} t={t} onCall={callWave} short />
+          </div>
+        </aside>
+      )}
+
+      {snap && mode === 'wide' && (
+        <header className="flex h-16 items-center gap-3.5 border-b-2 border-edge bg-panel px-5 [grid-area:top]">
           {backButton}
           <PauseButton snap={snap} t={t} onToggle={togglePause} />
           <LivesChip snap={snap} t={t} />
@@ -190,93 +293,28 @@ export function BattleScreen({ mapId, upgrades, onFinish, onQuit }: Props) {
             </div>
           </div>
         </header>
-        <div className="flex min-h-0 flex-1">
-          {canvas}
-          {rightColumn}
+      )}
+
+      {snap && mode === 'wide' && (
+        <div className="flex min-h-0 flex-col gap-4 overflow-y-auto border-l-2 border-edge bg-panel p-4 [grid-area:side]">
+          {buildPanel}
+          {selection?.kind === 'tower' && (
+            <>
+              <div className="h-0.5 flex-none bg-edge" />
+              <SelectedTowerPanel snap={snap} t={t} onUpgrade={upgrade} onSell={sell} />
+            </>
+          )}
+          <p className="mt-auto flex-none rounded-[var(--radius-md)] border-2 border-edge bg-sunken p-3.5 text-[length:var(--text-sm)] leading-relaxed text-dim">
+            {selection?.kind === 'tower' ? t('battle.rangeHint') : t('battle.keyHint')}
+          </p>
         </div>
-        <footer className="flex h-[76px] flex-none items-center justify-center border-t-2 border-edge bg-panel">
+      )}
+
+      {snap && mode === 'wide' && (
+        <footer className="flex h-[76px] items-center justify-center border-t-2 border-edge bg-panel [grid-area:bottom]">
           <CallWaveButton snap={snap} t={t} onCall={callWave} className="w-[420px]" />
         </footer>
-      </div>
-    );
-  }
-
-  /* ── landscapeCompact: canvas giữa, HUD ở hai dải mép ──────────────────── */
-  if (mode === 'landscapeCompact') {
-    return (
-      <div className="flex h-full bg-void">
-        <BattleLiveRegion snap={snap} t={t} />
-        <aside className="flex w-[136px] flex-none flex-col gap-2 border-r-2 border-edge bg-panel p-3">
-          {backButton}
-          <PauseButton snap={snap} t={t} onToggle={togglePause} />
-          <LivesChip snap={snap} t={t} />
-          <GoldChip snap={snap} t={t} />
-          <div className="mt-auto">
-            <WaveMeter snap={snap} t={t} />
-          </div>
-        </aside>
-        {canvas}
-        <aside className="flex w-[168px] flex-none flex-col gap-2.5 overflow-y-auto border-l-2 border-edge bg-panel p-3">
-          <SpeedControl snap={snap} t={t} onChange={setSpeed} />
-          <div className="grid grid-cols-3 gap-1.5">
-            {snap.buildOptions.map((option) => (
-              <TowerCard
-                key={option.towerId}
-                towerId={option.towerId}
-                cost={option.cost}
-                affordable={option.affordable && selection?.kind === 'slot'}
-                selected={pickedTower === option.towerId}
-                t={t}
-                onPick={() => build(option.towerId)}
-              />
-            ))}
-          </div>
-          {selection?.kind === 'tower' && (
-            <SelectedTowerPanel snap={snap} t={t} onUpgrade={upgrade} onSell={sell} />
-          )}
-          <div className="mt-auto flex flex-col gap-2">
-            <NextWaveStrip snap={snap} t={t} />
-            <CallWaveButton snap={snap} t={t} onCall={callWave} short />
-          </div>
-        </aside>
-      </div>
-    );
-  }
-
-  /* ── portrait: HUD trên, canvas giữa, điều khiển đáy ───────────────────── */
-  return (
-    <div className="flex h-full flex-col bg-void">
-      <BattleLiveRegion snap={snap} t={t} />
-      <header className="flex-none border-b-2 border-edge bg-panel px-3 py-2.5">
-        <div className="flex items-center gap-2.5">
-          {backButton}
-          <PauseButton snap={snap} t={t} onToggle={togglePause} />
-          <LivesChip snap={snap} t={t} />
-          <GoldChip snap={snap} t={t} />
-          <div className="ml-auto">
-            <WaveMeter snap={snap} t={t} />
-          </div>
-        </div>
-      </header>
-
-      {canvas}
-
-      <footer className="flex flex-none flex-col gap-3 border-t-2 border-edge bg-panel px-3 pb-4 pt-3">
-        {selection?.kind === 'tower' ? (
-          <SelectedTowerPanel snap={snap} t={t} onUpgrade={upgrade} onSell={sell} />
-        ) : selection?.kind === 'slot' ? (
-          buildPanel
-        ) : (
-          <NextWaveStrip snap={snap} t={t} />
-        )}
-        <div className="flex items-center gap-2.5">
-          <SpeedControl snap={snap} t={t} onChange={setSpeed} />
-          <span className="ml-auto text-[length:var(--text-sm)] text-dim">
-            {selection ? '' : t('battle.tapSlotToBuild')}
-          </span>
-        </div>
-        <CallWaveButton snap={snap} t={t} onCall={callWave} />
-      </footer>
+      )}
     </div>
   );
 }

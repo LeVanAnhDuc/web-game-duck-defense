@@ -52,9 +52,19 @@ export function subscribeSnapshot(fn: Listener): () => void {
   };
 }
 
-/** Gọi khi rời màn trận đấu, để trận sau không kế thừa gì của trận trước. */
+/**
+ * Gọi khi vào/rời màn trận đấu, để trận sau không kế thừa gì của trận trước.
+ *
+ * KHÔNG xoá danh sách người đăng ký, và đó là điểm quan trọng: `useSnapshot`
+ * đăng ký qua `useSyncExternalStore`, và đăng ký đó xảy ra TRƯỚC effect khởi
+ * động Phaser. Xoá listener ở đây sẽ gỡ đúng subscriber của React, và
+ * `useSyncExternalStore` chỉ đăng ký lại khi hàm `subscribe` đổi identity — tức
+ * là không bao giờ. Kết quả: snapshot không tới UI, màn trận đấu trắng trơn,
+ * và không có một dòng lỗi nào trong console.
+ *
+ * Người đăng ký tự gỡ mình khi unmount. Đây không phải việc của hàm này.
+ */
 export function resetBridge(): void {
   queue = [];
   latest = null;
-  listeners.clear();
 }

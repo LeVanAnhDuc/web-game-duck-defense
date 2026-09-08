@@ -34,6 +34,7 @@ export const vi = {
   'battle.buildTower': 'Xây tháp',
   'battle.tapSlotToBuild': 'Chạm ô trống để xây',
   'battle.selectedSlot': 'Ô đang chọn',
+  'battle.speed': 'Tốc độ trận',
   'battle.pause': 'Tạm dừng',
   'battle.resume': 'Tiếp tục',
   'battle.rangeHint': 'Vòng nét đứt trên bản đồ là tầm bắn của tháp đang chọn.',

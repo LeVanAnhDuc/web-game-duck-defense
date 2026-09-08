@@ -7,6 +7,14 @@ export type GameHandle = {
   setSpeed: (speed: BattleSpeed) => void;
   setPaused: (paused: boolean) => void;
   setSelection: (selection: Selection) => void;
+  /**
+   * Bảo Phaser đo lại khung chứa.
+   *
+   * Cần thiết vì bố cục đổi bằng CSS grid, không bằng resize cửa sổ — và
+   * `Scale.FIT` chỉ tự đo lại khi window resize. Thiếu lời gọi này thì canvas
+   * giữ nguyên kích thước của bố cục trước.
+   */
+  refreshScale: () => void;
 };
 
 /**
@@ -37,10 +45,21 @@ export function startGame(parent: HTMLElement, cfg: BattleSceneConfig): GameHand
     scene,
   });
 
+  /**
+   * `Scale.FIT` của Phaser chỉ nghe `window.resize`. Khung chứa ở đây đổi kích
+   * thước vì CSS grid đổi, mà cửa sổ không đổi — nên phải tự quan sát.
+   */
+  const observer = new ResizeObserver(() => game.scale.refresh());
+  observer.observe(parent);
+
   return {
-    destroy: () => game.destroy(true),
+    destroy: () => {
+      observer.disconnect();
+      game.destroy(true);
+    },
     setSpeed: (speed) => scene.setSpeed(speed),
     setPaused: (paused) => scene.setPaused(paused),
     setSelection: (selection) => scene.setSelection(selection),
+    refreshScale: () => game.scale.refresh(),
   };
 }

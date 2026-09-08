@@ -27,6 +27,7 @@ export const en: Record<StringKey, string> = {
   'battle.buildTower': 'Build a tower',
   'battle.tapSlotToBuild': 'Tap an empty slot to build',
   'battle.selectedSlot': 'Selected slot',
+  'battle.speed': 'Battle speed',
   'battle.pause': 'Pause',
   'battle.resume': 'Resume',
   'battle.rangeHint': 'The dashed ring on the board is the selected tower’s range.',
