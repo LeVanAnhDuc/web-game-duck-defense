@@ -71,7 +71,7 @@ truy vấn bị bỏ. Chúng được giữ lại dưới dạng `~~(bỏ)~~` đ
 | NFR-I18N-01 | Không hardcode chuỗi hiển thị trong code. Mọi chuỗi đi qua từ điển vi/en | grep tìm chuỗi tiếng Việt/Anh trong `.tsx` ngoài `i18n/` |
 | ~~NFR-I18N-02~~ | ~~Thời gian lưu ở UTC~~ **(bỏ — game không hiện thời gian nào)** | — |
 | NFR-I18N-03 | Số hiển thị theo locale người chơi (dấu phân cách thập phân) | review |
-| NFR-I18N-04 | Bố cục chịu được chuỗi tiếng Việt dài hơn tiếng Anh **30%** ở mọi bề rộng | dựng mockup và app bằng tiếng Việt trước, không phải tiếng Anh |
+| NFR-I18N-04 | Bố cục không tràn, không cắt chữ ở **cả hai locale**, ở mọi bề rộng. Từng nhãn lệch nhau tới ~2 lần theo cả hai chiều; **không** locale nào là "bản dài" — đo được ở `tests/core/i18n.test.ts` | e2e chạy cả `vi` và `en`, không chỉ một |
 
 ## Reliability
 

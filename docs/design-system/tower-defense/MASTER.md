@@ -157,8 +157,19 @@ Thang chữ (tỉ lệ 1.25, đủ dùng cho UI dày đặc):
 chữ số không cùng bề rộng thì cả thanh HUD rung. Font nào không hỗ trợ thì đặt
 `min-width` cố định cho ô số.
 
-**Chuỗi tiếng Việt dài hơn tiếng Anh khoảng 30%.** Mọi mockup dựng bằng chuỗi tiếng
-Việt, không phải tiếng Anh — vừa ở tiếng Việt thì chắc chắn vừa ở tiếng Anh.
+**Bố cục phải chịu được bản DÀI HƠN của từng nhãn, và nhãn nào dài hơn thì tuỳ nhãn.**
+
+Chỗ này ban đầu ghi "chuỗi tiếng Việt dài hơn tiếng Anh khoảng 30%". Đo trên từ điển
+thật thì sai: tổng tiếng Việt **2038** ký tự, tiếng Anh **2134** — tiếng Việt *ngắn
+hơn* 4,5%. Tiếng Anh dài hơn ở **74** nhãn, tiếng Việt dài hơn ở **39** nhãn. Dấu
+tiếng Việt không làm chữ rộng thêm, và nhiều từ Việt ngắn hơn hẳn ("Đợt" vs "Wave").
+
+Nhưng từng nhãn thì lệch nhau tới **hai lần theo cả hai chiều** — "Quay lại" (8) vs
+"Back" (4), "Bỏ chọn" (7) vs "Clear selection" (15). Nên luật là:
+
+> Kiểm mỗi bố cục bằng **cả hai** locale, không phải bằng một locale "dài hơn".
+> `tests/core/i18n.test.ts` chặn nhãn nào lệch quá 2,5 lần — quá mức đó gần như
+> chắc chắn là lỗi dịch, không phải đặc tính ngôn ngữ.
 
 ---
 
@@ -286,7 +297,7 @@ Thêm cho dự án này:
 - ❌ **Dùng đỏ hoặc xanh lá làm màu tương tác của chrome** — chúng đã có nghĩa trong luật chơi.
 - ❌ **Hardcode hex trong code Phaser** — đọc từ CSS variable lúc khởi động.
 - ❌ **React re-render mỗi frame** — HUD đọc snapshot ~10Hz.
-- ❌ **Mockup dựng bằng chuỗi tiếng Anh** — luôn dựng bằng tiếng Việt, chuỗi dài hơn.
+- ❌ **Chỉ kiểm bố cục ở một locale.** Không locale nào là "bản dài" — xem §2.
 - ❌ **`opacity` để làm trạng thái tắt/khoá** — xem §1.1b. Đổi token nền + token chữ.
 - ❌ **Chữ màu (`core` · `danger` · `dim` · `ok`) trên `--raised`** — xem luật ở §1.1b.
 - ❌ **Màu semantic làm nhãn phân loại.** Icon của nhánh "Sát thương" không được tô
@@ -309,7 +320,7 @@ Thêm cho dự án này:
 - [ ] `prefers-reduced-motion` được tôn trọng
 - [ ] Dựng ở 375 · 768 · 1024 · 1440, cả hai chiều xoay
 - [ ] Không cuộn ngang
-- [ ] **Chuỗi tiếng Việt không tràn, không cắt** — kiểm ở 375 trước
+- [ ] **Chuỗi không tràn, không cắt ở CẢ HAI locale** — kiểm ở 375 trước
 - [ ] Không trạng thái nào chỉ phân biệt được bằng màu
 
 ---
