@@ -18,36 +18,27 @@ KHÔNG chứa: tính năng ngoài phạm vi (-> 01-product/overview.md §Non-Goa
 
 ## Đang làm
 
-**Đang chờ người thật: PR #1 mở, CI xanh, chưa merge.**
-https://github.com/LeVanAnhDuc/web-game-duck-defense/pull/1
+**Đang mở PR sửa lỗi canvas bị cắt trên desktop.**
 
-Feature `tower-defense-v1` đã đóng — cả 32 FR ở `scope.md` là `xong`, trong đó
-FR-18 **xong ở phạm vi đã thu hẹp** (không có nhạc nền — xem §Nợ kỹ thuật). Sau
-khi đóng còn hai đợt nữa: **code review** tìm ra 8 lỗi (mỗi lỗi giờ có một test
-hồi quy đã kiểm đỏ-xanh), và **tích hợp GitHub** — đổi tên sản phẩm thành
-*Duck Defense*, chuyển `base` sang `'./'` (ADR-0007), ba workflow
-CI/deploy/release theo đúng khuôn các game khác trong `web-game/`, và README
-viết lại theo hợp đồng 13 mục của skill `readme-game`.
+`tower-defense-v1` đã merge (PR #1), tag **v0.1.0** đã có, và bản Pages đang
+chạy thật ở https://levananhduc.github.io/web-game-duck-defense/ — HTTP 200,
+không lỗi console, không request nào đỏ.
 
-Đo trên **CI thật**, run 34241485241, không phải đo ở máy: `eslint` sạch ·
-`tsc --noEmit` sạch · **231 test đơn vị** xanh · **22 test e2e** (Chromium)
-xanh · `npm audit` không có advisory từ high trở lên · bundle **404.733 B**
-gzip so với trần 921.600 B của NFR-PERF-08.
+Nhưng chính bản live đó lộ ra một lỗi mà toàn bộ 22 test e2e không thấy: ở mọi
+viewport desktop, canvas bị cỡ theo CHIỀU CAO CỬA SỔ thay vì theo khung bàn
+(1280×720 → canvas 720×720 trong khung cao 580), nên hàng ô trên và hàng ô dưới
+bị `overflow-hidden` cắt mất. Nguyên nhân: `game.scale.refresh()` tính lại từ
+`parentSize` Phaser đã cache và KHÔNG đọc lại DOM — phải gọi
+`getParentBounds()` trước. Đã thành **bất biến #12** ở `03-design/invariants.md`.
 
-Hai bước chỉ người thật làm được, theo đúng thứ tự:
+Lỗi này sống sót được vì mọi test e2e cũ đều tự `setViewportSize` trước khi đo,
+và một lần resize là Phaser tự đo lại đúng. Test hồi quy mới đo NGAY SAU boot,
+không resize gì.
 
-1. **Bật Pages** — Settings → Pages → Source → *GitHub Actions*. Cờ
-   `enablement: true` trong `deploy.yml` KHÔNG thay được bước này:
-   `GITHUB_TOKEN` không có quyền tạo Pages site. Merge trước khi bật thì
-   `deploy.yml` đỏ.
-2. **Merge PR #1.** Lúc merge, `deploy.yml` đẩy bản build lên Pages và
-   `release.yml` gắn tag **v0.1.0** rồi sinh release note. Đã chạy thử cả hai
-   script ở máy: `next-version.sh` ra `bump=initial · next=v0.1.0`,
-   `release-notes.sh` nhóm đúng theo Conventional Commit.
-
-Nhánh `feat/tower-defense-v1` và `main` đều đã có trên remote. `main` hiện chỉ
-có hai commit tài liệu và **không có** `.github/workflows/`, nên lần đẩy `main`
-đầu tiên không kích hoạt workflow nào — đó là lý do CI lần đầu chỉ chạy trên PR.
+Kiểm chứng ở máy sau khi sửa: `eslint` sạch · `tsc --noEmit` sạch ·
+**231 test đơn vị** · **23 test e2e** (thêm 1) · 7 viewport từ 375×667 tới
+1440×900 đều `canvas <= khung`. Đã kiểm đỏ-xanh: bỏ đúng dòng
+`getParentBounds()` thì test đỏ lại.
 
 ## Việc tiếp theo
 

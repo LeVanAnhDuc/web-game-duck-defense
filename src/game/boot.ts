@@ -44,20 +44,43 @@ export function startGame(parent: HTMLElement, cfg: BattleSceneConfig): GameHand
     scene,
   });
 
+  /** `game.scale` đã destroy thì gọi vào là ném lỗi, mà `ResizeObserver` còn
+   * bắn được một nhịp khi khung chứa bị tháo — nên phải có cờ này. */
+  let alive = true;
+
+  /**
+   * Hai lời gọi, không phải một — và đây là chỗ dễ sai nhất ở file này.
+   *
+   * `refresh()` tính lại tỉ lệ từ `parentSize` mà Phaser đã cache, nó KHÔNG
+   * đọc lại DOM; `getParentBounds()` mới là hàm đọc lại. Thiếu nó thì mọi lần
+   * refresh chỉ lặp lại số đo cũ, kể cả khi khung chứa đã đổi từ lâu.
+   */
+  const refresh = () => {
+    if (!alive) return;
+    game.scale.getParentBounds();
+    game.scale.refresh();
+  };
+
   /**
    * `Scale.FIT` của Phaser chỉ nghe `window.resize`. Khung chứa ở đây đổi kích
    * thước vì CSS grid đổi, mà cửa sổ không đổi — nên phải tự quan sát.
+   *
+   * Quan sát viên này là ĐỦ, không cần thêm một lần đo lúc game ready: canvas
+   * chỉ sai khi khung chứa đổi kích thước SAU lúc Phaser boot, mà mỗi lần đổi
+   * như vậy đều bắn `ResizeObserver`. Đã kiểm bằng cách bỏ lần đo ở `ready` —
+   * test hồi quy vẫn xanh.
    */
-  const observer = new ResizeObserver(() => game.scale.refresh());
+  const observer = new ResizeObserver(refresh);
   observer.observe(parent);
 
   return {
     destroy: () => {
+      alive = false;
       observer.disconnect();
       game.destroy(true);
     },
     setSpeed: (speed) => scene.setSpeed(speed),
     setPaused: (paused) => scene.setPaused(paused),
-    refreshScale: () => game.scale.refresh(),
+    refreshScale: refresh,
   };
 }
