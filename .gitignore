@@ -15,3 +15,9 @@ test-results/
 
 # Cache cua tsc. `npm run typecheck` sinh ra no moi lan chay.
 *.tsbuildinfo
+
+# Worktree của feature nằm trong repo (`<repo>/.worktrees/<feature>/`) theo đúng
+# quy ước workspace. Mỗi thư mục con là một checkout riêng của CHÍNH repo này,
+# nên `git add -A` sẽ thêm nó vào như một gitlink lồng — commit ra một submodule
+# không ai trỏ tới. Ignore để chuyện đó không thể xảy ra.
+.worktrees/
