@@ -192,7 +192,7 @@ export function loadProfile(): LoadResult {
 
   const writable = probeWritable(store);
 
-  let raw: string | null = null;
+  let raw: string | null;
   try {
     raw = store.getItem(PROFILE_KEY);
   } catch {
@@ -201,7 +201,7 @@ export function loadProfile(): LoadResult {
 
   if (raw === null) return { profile: emptyProfile(), recovered: false, repaired: false, writable };
 
-  let parsed: unknown = null;
+  let parsed: unknown;
   try {
     parsed = JSON.parse(raw);
   } catch {
