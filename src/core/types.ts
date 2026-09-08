@@ -95,3 +95,10 @@ export type BattleState = {
   nextId: EntityId;
   stats: { killed: number; leaked: number; goldEarned: number };
 };
+
+/**
+ * Tốc độ đạn, đơn vị bản đồ mỗi giây. Một giá trị cho mọi loại tháp ở v1 —
+ * đạn nhanh hơn enemy nhiều lần nên khác biệt giữa các loại không đọc được,
+ * và một hằng thì dễ suy luận hơn năm hằng.
+ */
+export const PROJECTILE_SPEED = 420;

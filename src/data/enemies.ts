@@ -23,9 +23,9 @@ export type EnemyType = {
 };
 
 export const ENEMIES: Record<EnemyTypeId, EnemyType> = {
-  grunt: { id: 'grunt', hp: 60, speed: 34, armor: 0, bounty: 6, leak: 1 },
-  runner: { id: 'runner', hp: 34, speed: 62, armor: 0, bounty: 7, leak: 1 },
-  armored: { id: 'armored', hp: 150, speed: 26, armor: 6, bounty: 14, leak: 2 },
+  grunt: { id: 'grunt', hp: 60, speed: 34, armor: 0, bounty: 11, leak: 1 },
+  runner: { id: 'runner', hp: 34, speed: 62, armor: 0, bounty: 13, leak: 1 },
+  armored: { id: 'armored', hp: 150, speed: 26, armor: 6, bounty: 28, leak: 2 },
 };
 
 export const ENEMY_IDS = Object.keys(ENEMIES) as EnemyTypeId[];

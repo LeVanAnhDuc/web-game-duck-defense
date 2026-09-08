@@ -40,7 +40,7 @@ const NO_SLOW = { slowFactor: 1, slowTicks: 0 } as const;
 export const TOWERS: Record<TowerTypeId, TowerType> = {
   arrow: {
     id: 'arrow',
-    cost: 80,
+    cost: 60,
     targeting: 'first',
     pierceArmor: false,
     unlockedAtStart: true,
@@ -52,7 +52,7 @@ export const TOWERS: Record<TowerTypeId, TowerType> = {
   },
   cannon: {
     id: 'cannon',
-    cost: 150,
+    cost: 110,
     targeting: 'first',
     pierceArmor: false,
     unlockedAtStart: true,
@@ -64,7 +64,7 @@ export const TOWERS: Record<TowerTypeId, TowerType> = {
   },
   frost: {
     id: 'frost',
-    cost: 120,
+    cost: 90,
     targeting: 'first',
     pierceArmor: false,
     unlockedAtStart: true,

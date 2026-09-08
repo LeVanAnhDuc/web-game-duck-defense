@@ -32,9 +32,9 @@ export const M04: MapDef = {
     [w('armored', 18, 44), w('grunt', 20, 20, 80)],
     [w('runner', 30, 11), w('armored', 12, 50, 100)],
     [w('grunt', 36, 16), w('runner', 20, 13, 140)],
-    [w('armored', 24, 38), w('runner', 24, 11, 100)],
-    [w('runner', 40, 9), w('armored', 16, 46, 120)],
-    [w('armored', 28, 34), w('runner', 30, 9, 100), w('grunt', 30, 16, 240)],
+    [w('armored', 32, 32), w('runner', 32, 9, 90)],
+    [w('runner', 52, 7), w('armored', 22, 40, 100)],
+    [w('armored', 38, 28), w('runner', 42, 7, 90), w('grunt', 40, 13, 210)],
   ],
   referenceLayout: [
     { slotIndex: 5, towerId: 'frost', level: 3 },
