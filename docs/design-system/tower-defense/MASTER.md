@@ -1,9 +1,9 @@
-# Design System Master — Tower Defense
+# Design System Master — Duck Defense
 
 > **LOGIC:** Khi dựng một màn hình cụ thể, đọc `pages/<screen>.md` trước.
 > File đó có thì luật của nó **đè** file này. Không có thì theo file này.
 
-**Project:** Tower Defense · **Slug:** `tower-defense`
+**Project:** Duck Defense · **Slug:** `tower-defense` *(slug giữ nguyên: `.claude/CLAUDE.md` trỏ vào `docs/design-system/tower-defense/MASTER.md`)*
 **Bước 1 (ràng buộc, `ui-ux-pro-max`):** 2026-09-08 · **Bước 2 (lựa chọn, `frontend-design`):** 2026-09-08
 **Quyết định kèm theo:** [`ADR-0001`](../../decisions/0001-design-system-tokens.md)
 

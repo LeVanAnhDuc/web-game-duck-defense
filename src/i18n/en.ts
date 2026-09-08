@@ -2,7 +2,7 @@ import type { StringKey } from './vi';
 
 /** English dictionary. Must carry exactly the same keys as `vi.ts`. */
 export const en: Record<StringKey, string> = {
-  'app.title': 'Frontline',
+  'app.title': 'Duck Defense',
   'app.tagline': 'Hold the road. Let nothing through.',
 
   'common.back': 'Back',

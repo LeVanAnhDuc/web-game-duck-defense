@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Phong Tuyen - a browser tower defense game. No backend, no accounts, progress stays on the player's machine.",
+  "description": "Duck Defense - a browser tower defense game. No backend, no accounts, progress stays on the player's machine.",
   "engines": {
     "node": ">=22"
   },

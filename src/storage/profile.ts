@@ -41,7 +41,7 @@ export type Profile = {
  * khoá lạ nên không cần migrate và `schemaVersion` giữ nguyên là 1.
  */
 
-export const PROFILE_KEY = 'phongtuyen.profile';
+export const PROFILE_KEY = 'duckdefense.profile';
 export const SCHEMA_VERSION = 1;
 
 export type LoadResult = {

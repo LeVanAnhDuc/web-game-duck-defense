@@ -19,7 +19,7 @@ KHÔNG chứa: danh sách tính năng (-> 02-requirements/scope.md), ngưỡng k
 
 ## 1. Một câu định vị
 
-**Phòng Tuyến** là game tower defense 2D chạy thẳng trong trình duyệt, không cần tải
+**Duck Defense** là game tower defense 2D chạy thẳng trong trình duyệt, không cần tải
 và không cần đăng nhập — mở link là chơi được, trên điện thoại hay máy tính đều như
 nhau, và tiến trình nằm trong máy người chơi chứ không nằm trên server nào.
 
@@ -65,8 +65,9 @@ Không có nhóm thứ ba. Không có người quản trị, không có người
 - **Không có pathfinding động.** Đường đi là polyline vẽ sẵn cho mỗi bản đồ; tháp
   không bao giờ chặn đường. Loại bỏ cả một lớp thuật toán và cả một lớp lỗi.
 - **Không có chế độ nền sáng.** Bảng màu trong `MASTER.md` chỉ dựng cho nền tối.
-- **Không có âm thanh 3D, nhạc động theo trạng thái.** SFX rời + một bản nhạc nền
-  có nút tắt.
+- **Không có nhạc nền, không có âm thanh 3D.** Chỉ hiệu ứng âm thanh rời, tổng
+  hợp bằng WebAudio, có một thanh trượt tắt được. FR-18 đã được thu hẹp đúng theo
+  điều này — lý do ở `04-state/backlog.md` §Nợ kỹ thuật.
 
 ## 5. Mô hình
 

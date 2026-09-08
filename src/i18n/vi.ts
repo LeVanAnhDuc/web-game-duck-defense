@@ -9,7 +9,7 @@
  * lệch nhau tới hai lần theo cả hai chiều. Nên bố cục phải kiểm ở CẢ HAI locale.
  */
 export const vi = {
-  'app.title': 'Phòng Tuyến',
+  'app.title': 'Duck Defense',
   'app.tagline': 'Giữ đường. Đừng để chúng đi qua.',
 
   'common.back': 'Quay lại',

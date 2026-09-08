@@ -1624,7 +1624,7 @@ Refs: FR-14 · FR-15 · US-01"
   - `type Profile = { schemaVersion: 1; locale: 'vi' | 'en'; cores: number; upgrades: UpgradeState; unlockedTowers: TowerTypeId[]; maps: Record<MapId, { cleared: boolean; bestWave: number }>; settings: { music: number; sfx: number } }`
   - `loadProfile(): { profile: Profile; recovered: boolean; writable: boolean }`
   - `saveProfile(p: Profile): boolean`
-  - `PROFILE_KEY = 'phongtuyen.profile'`
+  - `PROFILE_KEY = 'duckdefense.profile'`
 
 - [ ] **Step 1: Write the failing test — six kinds of garbage, one test each**
 
