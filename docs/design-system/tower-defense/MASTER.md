@@ -58,6 +58,42 @@ khởi động rồi chuyển sang số nguyên — **không hardcode hex trong 
 
 `--ui-dim` là **sàn**, không phải gợi ý: chữ nào nhạt hơn nó là vi phạm NFR-A11Y-01.
 
+### 1.1b Ba bề mặt phụ, và cặp nào bị cấm trên chúng
+
+Panel không phải bề mặt duy nhất. Ba token nữa, khai báo ở đây vì nếu không khai báo
+thì chúng bị dùng bừa và tương phản trượt mà không ai đo:
+
+| Vai trò | Hex | Biến | Dùng ở |
+| --- | --- | --- | --- |
+| Ngoài canvas | `#0A141B` | `--letterbox` | vùng thừa quanh canvas khi `Scale.FIT` letterbox |
+| Bề mặt lõm | `#152A36` | `--sunken` | chip, ô nhập, rãnh thanh tiến độ, nút phụ có chữ màu |
+| Bề mặt nổi | `#24404F` | `--raised` | nút icon, nút phụ có chữ trắng, thẻ tháp mua được |
+
+**Ma trận tương phản đầy đủ** (đo bằng script, không ước lượng). `✗` = dưới 4.5:1,
+**cấm dùng làm chữ**:
+
+| | `--ui-void` | `--ui-panel` | `--sunken` | `--raised` |
+| --- | --- | --- | --- | --- |
+| `--ui-ink` | 15.03 | 11.46 | 13.13 | 9.68 |
+| `--ui-dim` | 7.02 | 5.35 | 6.13 | 4.52 |
+| `--sem-gold` | 9.11 | 6.95 | 7.95 | 5.86 |
+| `--sem-core` | 6.24 | 4.76 | 5.45 | **4.02 ✗** |
+| `--sem-danger` | 6.72 | 5.13 | 5.87 | **4.33 ✗** |
+| `--sem-ok` | 7.66 | 5.84 | 6.69 | 4.93 |
+
+Rút ra một luật, và nó là luật hay bị vi phạm nhất vì `--raised` trông "vẫn tối":
+
+> **Trên `--raised` chỉ được đặt `--ui-ink`.** Muốn chữ màu — `core`, `danger`, `dim`,
+> `ok` — thì đổi bề mặt sang `--sunken`, đừng đổi màu chữ.
+
+**Không dùng `opacity` để tạo trạng thái tắt.** `opacity: .72` trên một thẻ kéo cả
+chữ lẫn nền về phía nhau và làm tương phản tụt xuống dưới sàn mà không hex nào trong
+code sai — không grep ra được, không ai đo. Trạng thái tắt đổi **token nền** (sang
+`--sunken`) và **token chữ** (sang `--ui-dim`), rồi đo lại.
+
+`a:hover` dùng `--ui-ink`. Không có màu hover riêng — thêm một hex chỉ để hover là
+thêm một giá trị không ai đo.
+
 ### 1.2 Semantic (`--sem-*`)
 
 | Nghĩa trong luật chơi | Hex | Biến | Tương phản trên `panel` |
@@ -74,6 +110,21 @@ sprite tint), không bao giờ làm chữ.
 **Không được dùng màu làm kênh thông tin duy nhất:** mỗi trạng thái phải kèm một
 dấu hiệu thứ hai — icon, chữ, hoặc hình dạng. Người mù màu đỏ-lục là nhóm lớn nhất,
 và game này đặt đỏ cạnh xanh lá suốt.
+
+### 1.3 Màu art trong canvas — TẠM, sẽ bị sprite thay thế
+
+Bảy giá trị này chỉ tồn tại vì mockup phải vẽ bàn chơi bằng vector khi chưa nạp sprite
+Kenney. Chúng **không phải token** và không được dùng ở bất cứ đâu trong chrome:
+
+| Vẽ gì | Hex |
+| --- | --- |
+| Ô cỏ, hai sắc xen kẽ | `#4E7B45` · `#55834B` |
+| Đường đi, viền và lòng đường | `#96743F` · `#CBA96D` |
+| Enemy thường / enemy có giáp | `#B4443F` · `#8C6BB1` |
+| Nòng tháp Băng | `#7FD4E8` |
+
+Khi sprite Kenney vào, cả bảng này bị xoá. Nếu một trong bảy giá trị đó xuất hiện
+trong CSS của chrome, đó là lỗi — không phải lựa chọn.
 
 ---
 
@@ -236,6 +287,14 @@ Thêm cho dự án này:
 - ❌ **Hardcode hex trong code Phaser** — đọc từ CSS variable lúc khởi động.
 - ❌ **React re-render mỗi frame** — HUD đọc snapshot ~10Hz.
 - ❌ **Mockup dựng bằng chuỗi tiếng Anh** — luôn dựng bằng tiếng Việt, chuỗi dài hơn.
+- ❌ **`opacity` để làm trạng thái tắt/khoá** — xem §1.1b. Đổi token nền + token chữ.
+- ❌ **Chữ màu (`core` · `danger` · `dim` · `ok`) trên `--raised`** — xem luật ở §1.1b.
+- ❌ **Màu semantic làm nhãn phân loại.** Icon của nhánh "Sát thương" không được tô
+  đỏ chỉ vì nghe giống sát thương — đỏ đã thuộc về "đang mất máu". Nhãn phân loại
+  dùng `--ui-dim` hoặc `--ui-ink`.
+- ❌ **Trạng thái "đang chọn" chỉ khác nhau ở màu nền.** Segmented control, tab, chip
+  chọn — cái đang chọn phải mang thêm **một kênh thứ hai không phải màu**: một dấu
+  tròn đặc trước nhãn, hoặc nét chữ đậm hơn. Nền đổi màu là kênh thứ nhất, không đủ.
 
 ---
 
