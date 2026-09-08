@@ -1,4 +1,4 @@
-# Tài liệu dự án `web-game/web-game-tower-defense`
+# Tài liệu dự án `web-game-tower-defense`
 
 ## Bản đồ
 
