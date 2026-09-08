@@ -15,7 +15,9 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "release:next": "npx --yes git-cliff@2.13.1 --bumped-version",
+    "release:notes": "npx --yes git-cliff@2.13.1 --unreleased --tag $(npx --yes git-cliff@2.13.1 --bumped-version) --strip all"
   },
   "dependencies": {
     "phaser": "^3.90.0",
