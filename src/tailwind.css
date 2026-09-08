@@ -1,0 +1,103 @@
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600&display=swap');
+@import 'tailwindcss';
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Token — nguồn đúng duy nhất là docs/design-system/tower-defense/MASTER.md.
+   Đây là BẢN SAO DUY NHẤT trong code. Phaser cũng đọc từ đây (src/game/palette.ts),
+   không hardcode hex — MASTER.md §8.
+
+   Luật của MASTER.md §1.1b, không có công cụ nào bắt được nếu vi phạm:
+     • Trên --raised CHỈ được đặt --ui-ink. Chữ màu thì đổi bề mặt sang --sunken.
+     • Không dùng opacity để làm trạng thái tắt.
+   ───────────────────────────────────────────────────────────────────────────── */
+:root {
+  --ui-void: #101e27;
+  --ui-panel: #1d3442;
+  --ui-edge: #0a1219;
+  --ui-ink: #f4f1e8;
+  --ui-dim: #93aab8;
+  --ui-act: #38bdc8;
+  --ui-on-act: #0a1219;
+
+  --sem-gold: #f0b429;
+  --sem-core: #a78bfa;
+  --sem-danger: #ff7a7a;
+  --sem-ok: #4cc38a;
+
+  --letterbox: #0a141b;
+  --sunken: #152a36;
+  --raised: #24404f;
+}
+
+@theme inline {
+  --color-void: var(--ui-void);
+  --color-panel: var(--ui-panel);
+  --color-edge: var(--ui-edge);
+  --color-ink: var(--ui-ink);
+  --color-dim: var(--ui-dim);
+  --color-act: var(--ui-act);
+  --color-on-act: var(--ui-on-act);
+  --color-gold: var(--sem-gold);
+  --color-core: var(--sem-core);
+  --color-danger: var(--sem-danger);
+  --color-ok: var(--sem-ok);
+  --color-letterbox: var(--letterbox);
+  --color-sunken: var(--sunken);
+  --color-raised: var(--raised);
+
+  --font-disp: 'Baloo 2', 'Be Vietnam Pro', system-ui, sans-serif;
+  --font-body: 'Be Vietnam Pro', system-ui, sans-serif;
+
+  /* Thang chữ của MASTER.md §2. Không có bậc nào khác. */
+  --text-sm: 14px;
+  --text-md: 16px;
+  --text-lg: 19px;
+  --text-xl2: 20px;
+  --text-2xl: 24px;
+  --text-3xl: 28px;
+  --text-hero: 32px;
+  --text-hero-lg: 48px;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--ui-void);
+  color: var(--ui-ink);
+  font-family: var(--font-body);
+  font-size: var(--text-md);
+  -webkit-font-smoothing: antialiased;
+  /* Cảm ứng: không cho kéo bật trang khi người chơi vuốt trên canvas */
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Số trong HUD đổi liên tục; chữ số không cùng bề rộng thì cả thanh HUD rung. */
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+.disp {
+  font-family: var(--font-disp);
+}
+
+/* NFR-A11Y-05 — tắt chuyển động của giao diện. Animation sprite trong canvas là
+   nội dung game, không bị ảnh hưởng bởi rule này. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

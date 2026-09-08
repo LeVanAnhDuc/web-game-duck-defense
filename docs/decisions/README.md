@@ -8,7 +8,13 @@
 <!-- BEGIN:auto — bảng dưới do .claude/scripts/docs-regen.sh sinh từ các file ADR. Đừng sửa tay. -->
 | ID | Tiêu đề | Ngày | Trạng thái |
 | --- | --- | --- | --- |
-| — | _chưa có ADR nào_ | — | — |
+| [ADR-0001](0001-design-system-tokens.md) | Dùng Baloo 2 + Be Vietnam Pro trên nền petrol-cyan, thay vì bộ pixel-art 8-bit | 2026-09-08 | accepted |
+| [ADR-0002](0002-phaser-ve-tran-dau-react-ve-vo.md) | Phaser 3 vẽ trận đấu, React vẽ toàn bộ vỏ giao diện | 2026-09-08 | accepted |
+| [ADR-0003](0003-loi-mo-phong-thuan-fixed-timestep.md) | Lõi mô phỏng là TypeScript thuần, chạy fixed timestep 60Hz với RNG có seed | 2026-09-08 | accepted |
+| [ADR-0004](0004-cau-noi-y-dinh-xuong-snapshot-len.md) | Cầu nối một chiều: ý định đi xuống, snapshot 10Hz đi lên | 2026-09-08 | accepted |
+| [ADR-0005](0005-profile-trong-localstorage-co-schemaversion.md) | Một profile trong localStorage, một key, có schemaVersion từ ngày đầu | 2026-09-08 | accepted |
+| [ADR-0006](0006-toolchain-npm-vite-vitest-tailwind.md) | npm + Vite + Vitest + Tailwind, deploy tĩnh lên GitHub Pages | 2026-09-08 | accepted |
+| [ADR-0007](0007-base-tuong-doi-thay-cho-base-theo-ten-repo.md) | Dùng `base: './'` thay cho base tuyệt đối theo tên repo | 2026-09-08 | accepted |
 <!-- END:auto -->
 
 Trạng thái: `accepted` · `superseded by ADR-00xx` · `deprecated`

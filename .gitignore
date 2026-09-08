@@ -4,3 +4,14 @@
 .env
 .env.*
 !.env.example
+
+# Build và dependency
+node_modules/
+dist/
+.vite/
+coverage/
+playwright-report/
+test-results/
+
+# Cache cua tsc. `npm run typecheck` sinh ra no moi lan chay.
+*.tsbuildinfo

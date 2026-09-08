@@ -1,0 +1,59 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Đẩy liên tiếp thì huỷ lần đang chạy — không có lý do gì để deploy một bản cũ
+# hơn bản vừa push.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      # Test trước khi build: `ci.yml` chỉ chạy trên pull request, nên một commit
+      # đẩy thẳng vào `main` sẽ không đi qua nó.
+      - run: npm test
+
+      # KHÔNG có biến môi trường nào ở đây. `vite.config.ts` đặt `base: './'`,
+      # nên cùng một bản build chạy đúng ở gốc tên miền và dưới đường dẫn con của
+      # Pages — đó cũng là lý do `.env.example` nói dự án không đọc biến nào
+      # (ADR-0007).
+      - run: npm run build
+
+      # `enablement` KHÔNG thay thế việc bật Pages một lần cho repo.
+      # `GITHUB_TOKEN` không tạo được Pages site — "Resource not accessible by
+      # integration". Vẫn giữ vì nó không tốn gì và giúp fork của người đã bật
+      # Pages sẵn. Bước một lần nằm ở README §Releases and versioning.
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
