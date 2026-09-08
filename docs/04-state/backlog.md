@@ -21,16 +21,22 @@ KHÔNG chứa: tính năng ngoài phạm vi (-> 01-product/overview.md §Non-Goa
 _(trống)_ — feature `tower-defense-v1` đã đóng. Cả 32 FR ở `scope.md` là `xong`,
 trong đó FR-18 **xong ở phạm vi đã thu hẹp** (không có nhạc nền — xem §Nợ kỹ thuật).
 
-Trạng thái kiểm chứng lúc đóng: **220 test đơn vị** (Vitest, không cần trình
-duyệt) và **15 test e2e** (Playwright, Chromium) đều xanh; `tsc --noEmit` và
-`eslint` sạch; `vite build` ra 401 KB gzip, dưới trần 900 KB của NFR-PERF-08.
+Trạng thái kiểm chứng lúc đóng: **231 test đơn vị** (Vitest, không cần trình
+duyệt) và **22 test e2e** (Playwright, Chromium) đều xanh; `tsc --noEmit` và
+`eslint` sạch; `vite build` ra ~399 KB gzip, dưới trần 900 KB của NFR-PERF-08.
+
+Sau khi đóng feature còn hai đợt nữa: **code review** tìm ra 8 lỗi (mỗi lỗi giờ
+có một test hồi quy đã kiểm đỏ-xanh), và **tích hợp GitHub** — đổi tên sản phẩm
+thành *Duck Defense*, chuyển `base` sang `'./'` (ADR-0007), thêm ba workflow
+CI/deploy/release theo đúng khuôn các game khác trong `web-game/`, và viết lại
+README theo hợp đồng 13 mục của skill `readme-game`.
 
 ## Việc tiếp theo
 
 | Việc | Liên quan | Ưu tiên | Vì sao ưu tiên đó |
 | --- | --- | --- | --- |
 | **Chơi thật cả 5 bản đồ bằng tay** rồi tinh chỉnh `data/` | FR-32 · overview.md §6 | cao | Cân bằng hiện tại được đo bằng một người chơi MÔ PHỎNG hoàn hảo (`tests/balance/affordablePlayer.ts`). Nó chặn được cái bất khả thi, nhưng không nói được cái "chưa vui". Một lượt hoàn hảo hết 29,9 phút, còn `overview.md` §6 nhắm 60-90 phút — khoảng chênh đó chỉ người thật đo được |
-| Deploy lên GitHub Pages và mở thử trên điện thoại thật | ADR-0006 | cao | `base` sai chỉ lộ ra ở production, và cảm giác chạm chỉ đo được trên ngón tay thật |
+| Bật Pages cho repo (Settings → Pages → Source: GitHub Actions) rồi mở thử trên điện thoại thật | ADR-0006 · ADR-0007 | cao | `GITHUB_TOKEN` không tạo được Pages site, nên đây là bước tay bắt buộc một lần. Cảm giác chạm cũng chỉ đo được trên ngón tay thật |
 | Đo fps trên điện thoại tầm trung ở đợt cuối bản đồ 5 | NFR-PERF-05 | trung bình | Ngưỡng 30 fps chưa từng được đo trên thiết bị thật, chỉ suy ra từ kiến trúc |
 | Kiểm bằng screen reader thật | NFR-A11Y-07 | trung bình | Vùng `aria-live` đã có và e2e kiểm được focus, nhưng chưa ai nghe nó đọc |
 | Thêm ô 1024 vào canvas mockup | MASTER.md §6 | thấp | Mốc 1024 đã có bố cục thật trong code và có e2e, chỉ thiếu artboard |
@@ -45,4 +51,4 @@ duyệt) và **15 test e2e** (Playwright, Chromium) đều xanh; `tsc --noEmit` 
 | `docs/specs/tower-defense-v1/` | **Một feature folder cho cả v1** thay vì ba chu trình spec→plan→build | Ba chu trình cho một game 5 bản đồ sinh ra ba lần thủ tục mà không tách được phụ thuộc: `meta-progression` không kiểm được mà không có `core-battle`. Bù lại bằng `plan.md` chia pha | Khi có v2 thêm nhánh chức năng mới — nhánh đó là một feature riêng thật |
 | `data/` | Cân bằng đã qua **bốn vòng** nhưng vẫn chỉ đo bằng người chơi mô phỏng | Không có cách nào có số đúng trước khi chơi được. FR-32 chặn cái bất khả thi; cái "chưa vui" thì phải chơi mới biết. Bản đồ 2 và 4 hiện mất **0 mạng** với bố cục tham chiếu — hơi phẳng, nhưng siết thêm để làm khó một người chơi hoàn hảo là cách làm game không ai qua được | Ngay sau lượt chơi tay đầu tiên |
 | `tests/core/i18n.test.ts` | Chỉ chặn **tỉ lệ độ dài** giữa hai locale, không chặn độ rộng thật khi render | Độ rộng thật phụ thuộc font và phải đo trong trình duyệt — và e2e đã làm đúng việc đó ở 375 cho cả hai locale | Khi thêm locale thứ ba |
-| ~~`.env.example` rỗng~~ **(đã trả)** | — | Tôi từng ghi ở đây rằng không một dòng nào đọc biến môi trường. **Sai**, và `docs-regen.sh` bắt được: `vite.config.ts` đọc `GITHUB_PAGES`, `scripts/preview-pages.mjs` đọc `PORT`. Cả hai giờ đã có trong `.env.example`, kèm ghi chú rằng `BASE_URL` là biến Vite tự sinh chứ không phải biến người dùng khai. Đúng loại lỗi mà một hook so chuỗi bắt được còn con người thì bỏ qua | — |
+| ~~`.env.example` rỗng~~ **(đã trả, rồi thành đúng)** | — | Tôi từng ghi ở đây rằng không dòng nào đọc biến môi trường. **Sai** — `docs-regen.sh` bắt được `GITHUB_PAGES` trong `vite.config.ts` và `PORT` trong `scripts/preview-pages.mjs`. Đã khai cả hai. Rồi ADR-0007 chuyển `base` sang `'./'`, làm **cả hai biến biến mất** cùng với chính script đó, nên file lại rỗng — nhưng lần này rỗng vì đã kiểm, không vì phỏng đoán | — |

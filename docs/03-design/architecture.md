@@ -23,7 +23,7 @@ schema chi tiết (-> file schema của ORM), danh sách chức năng (-> 02-req
 
 ```mermaid
 graph LR
-  Player[Người chơi] --> App[Phòng Tuyến<br/>SPA tĩnh]
+  Player[Người chơi] --> App[Duck Defense<br/>SPA tĩnh]
   App --> LS[(localStorage<br/>trên máy người chơi)]
   App -.chỉ lúc nạp.-> GF[Google Fonts]
   App -.tĩnh.-> Pages[GitHub Pages]
@@ -113,17 +113,27 @@ runBattle(mapId, layout, upgrades, seed) -> { won, waveReached, ticks }
 
 ## 5. Tech stack
 
-| Lớp | Công nghệ | Biện minh |
-| --- | --- | --- |
-| Mô phỏng | TypeScript thuần, không thư viện | ADR-0003 |
-| Vẽ trận đấu | Phaser 3 | ADR-0002 |
-| Vỏ giao diện | React 19 | ADR-0002 |
-| Cầu nối hai bên | hàng đợi ý định + snapshot 10Hz, tự viết | ADR-0004 |
-| Kiểu dáng | Tailwind CSS 4, token từ `MASTER.md` | ADR-0006 |
-| Lưu trữ | `localStorage`, một key, có `schemaVersion` | ADR-0005 |
-| Art | Kenney Tower Defense pack (CC0) | ADR-0001 |
-| Build | Vite 7 | ADR-0006 |
-| Quản lý gói | npm | ADR-0006 |
-| Test lõi | Vitest | ADR-0006 |
-| Test trên trình duyệt | Playwright | ADR-0006 |
-| Hosting | GitHub Pages (tĩnh) | ADR-0005 |
+File này mang **phiên bản THẬT đang cài**, không mang con số viết trong ADR.
+ADR ghi lại *quyết định* (dùng Phaser chứ không Pixi; dùng npm chứ không Yarn) và
+là append-only, nên khi phiên bản nhảy thì chỗ cập nhật là bảng dưới đây.
+
+| Lớp | Công nghệ | Phiên bản đang cài | Biện minh |
+| --- | --- | --- | --- |
+| Mô phỏng | TypeScript thuần, không thư viện | — | ADR-0003 |
+| Vẽ trận đấu | Phaser | **3.90.0** | ADR-0002 |
+| Vỏ giao diện | React | **19.2.8** | ADR-0002 |
+| Cầu nối hai bên | hàng đợi ý định + snapshot 10Hz, tự viết | — | ADR-0004 |
+| Kiểu dáng | Tailwind CSS, token từ `MASTER.md` | **4.3.3** | ADR-0006 |
+| Lưu trữ | `localStorage`, một key, có `schemaVersion` | — | ADR-0005 |
+| Art | Kenney Tower Defense pack (CC0) | — | ADR-0001 |
+| Ngôn ngữ | TypeScript | **6.0.3** | ADR-0006 |
+| Build | Vite | **8.2.2** | ADR-0006 |
+| Quản lý gói | npm | — | ADR-0006 |
+| Test lõi | Vitest | **5.0.0** | ADR-0006 |
+| Test trên trình duyệt | Playwright | **1.63.0** | ADR-0006 |
+| Hosting | GitHub Pages (tĩnh), `base: './'` | — | ADR-0005 · ADR-0007 |
+
+**Hai chỗ lệch khỏi ADR, có chủ ý:** ADR-0002 và ADR-0006 nói "Phaser 3" và
+"Vite 7". Phaser được **ghim lại `^3`** vì npm giải `^4.2.1` mà API Phaser 4 khác
+đáng kể; Vite / Vitest / TypeScript thì giải lên cao hơn con số trong ADR. Quyết
+định trong hai ADR đó không đổi.
