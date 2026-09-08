@@ -13,7 +13,8 @@
 | [`03-design/architecture.md`](03-design/architecture.md) | Hệ thống ghép lại thế nào, ranh giới giữa các phần ở đâu? | 🔴 chưa điền | thêm/bỏ một module hoặc service · đổi cách hai module nói … |
 | [`03-design/invariants.md`](03-design/invariants.md) | Sửa gì thì hệ thống sai **âm thầm** — test vẫn xanh mà kết… | 🟡 mặc định đề xuất, chưa rà theo dự án | phát hiện một bất biến mới — thường là ngay sau khi ai đó … |
 | [`04-state/backlog.md`](04-state/backlog.md) | Đang làm gì, tiếp theo làm gì, và đang nợ những gì? | 🔴 chưa điền | bắt đầu/kết thúc một việc · brainstorm ra việc mới · cố ý … |
-| [`decisions/`](decisions/README.md) | Tại sao lại làm thế này? | 0 ADR | mỗi quyết định kỹ thuật |
+| [`design-system/tower-defense/MASTER.md`](design-system/tower-defense/MASTER.md) | — | — | — |
+| [`decisions/`](decisions/README.md) | Tại sao lại làm thế này? | 1 ADR | mỗi quyết định kỹ thuật |
 | [`../.env.example`](../.env.example) | cần biến nào để chạy được dự án này? | 🔴 chưa điền | code đọc một biến mới (process.env.X / os.getenv / os.Gete… |
 <!-- END:auto -->
 

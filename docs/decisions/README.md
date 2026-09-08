@@ -8,7 +8,7 @@
 <!-- BEGIN:auto — bảng dưới do .claude/scripts/docs-regen.sh sinh từ các file ADR. Đừng sửa tay. -->
 | ID | Tiêu đề | Ngày | Trạng thái |
 | --- | --- | --- | --- |
-| — | _chưa có ADR nào_ | — | — |
+| [ADR-0001](0001-design-system-tokens.md) | Dùng Baloo 2 + Be Vietnam Pro trên nền petrol-cyan, thay vì bộ pixel-art 8-bit | 2026-09-08 | accepted |
 <!-- END:auto -->
 
 Trạng thái: `accepted` · `superseded by ADR-00xx` · `deprecated`
