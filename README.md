@@ -166,8 +166,8 @@ What a commit author has to remember:
 Both steps run locally, so neither has to be trusted blind:
 
 ```bash
-bash .github/scripts/next-version.sh                    # which version, and why
-bash .github/scripts/release-notes.sh v0.2.0 v0.1.0     # exactly what it will say
+yarn release:next     # which tag the next release would get
+yarn release:notes    # what its notes would say
 ```
 
 **One-time setup per repository:** enable Pages under Settings → Pages → Source →
