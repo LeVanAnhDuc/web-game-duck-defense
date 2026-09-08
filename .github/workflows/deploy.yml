@@ -27,6 +27,11 @@ jobs:
           cache: npm
       - run: npm ci
 
+      # Lint chay o day chu khong chi trong ci.yml: `build` bat duoc loi kieu
+      # nhung khong bat vi pham lint, va mot push thang vao `main` khong di
+      # qua pull request.
+      - run: npm run lint
+
       # Test trước khi build: `ci.yml` chỉ chạy trên pull request, nên một commit
       # đẩy thẳng vào `main` sẽ không đi qua nó.
       - run: npm test
