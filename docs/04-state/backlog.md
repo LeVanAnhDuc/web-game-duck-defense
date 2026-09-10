@@ -18,27 +18,28 @@ KHÔNG chứa: tính năng ngoài phạm vi (-> 01-product/overview.md §Non-Goa
 
 ## Đang làm
 
-**Đang mở PR sửa lỗi canvas bị cắt trên desktop.**
+_(trống)_ — **v0.1.1 đã chạy thật.** https://levananhduc.github.io/web-game-duck-defense/
 
-`tower-defense-v1` đã merge (PR #1), tag **v0.1.0** đã có, và bản Pages đang
-chạy thật ở https://levananhduc.github.io/web-game-duck-defense/ — HTTP 200,
-không lỗi console, không request nào đỏ.
+Cả 32 FR ở `scope.md` là `xong`, trong đó FR-18 **xong ở phạm vi đã thu hẹp**
+(không có nhạc nền — xem §Nợ kỹ thuật). Hai PR đã merge: #1 dựng toàn bộ v1 kèm
+CI/deploy/release, #2 sửa lỗi canvas bị cắt.
 
-Nhưng chính bản live đó lộ ra một lỗi mà toàn bộ 22 test e2e không thấy: ở mọi
-viewport desktop, canvas bị cỡ theo CHIỀU CAO CỬA SỔ thay vì theo khung bàn
-(1280×720 → canvas 720×720 trong khung cao 580), nên hàng ô trên và hàng ô dưới
-bị `overflow-hidden` cắt mất. Nguyên nhân: `game.scale.refresh()` tính lại từ
-`parentSize` Phaser đã cache và KHÔNG đọc lại DOM — phải gọi
-`getParentBounds()` trước. Đã thành **bất biến #12** ở `03-design/invariants.md`.
+Đo trên **CI thật** (run 34245919441/34245919358): `eslint` sạch ·
+`tsc --noEmit` sạch · **231 test đơn vị** · **23 test e2e** (Chromium) ·
+`npm audit` không có advisory từ high trở lên · bundle **404.733 B** gzip so với
+trần 921.600 B của NFR-PERF-08. Kiểm trên bản LIVE, 6 viewport từ 375×667 tới
+1440×900: `canvas <= khung bàn`, 0 lỗi console, hash asset khớp bản build có fix.
 
-Lỗi này sống sót được vì mọi test e2e cũ đều tự `setViewportSize` trước khi đo,
-và một lần resize là Phaser tự đo lại đúng. Test hồi quy mới đo NGAY SAU boot,
-không resize gì.
+Bài học đáng giữ từ PR #2, vì nó sẽ lặp lại: **bản deploy tìm ra lỗi mà 22 test
+e2e không tìm ra**, và nó không tìm ra được vì mọi test đều `setViewportSize`
+trước khi đo — một lần resize là Phaser tự đọc lại khung chứa, nên lỗi tự lành
+trước khi có assertion nào chạy. Test nào đo trạng thái *ngay sau khi khởi
+động* thì phải không resize gì cả. Cơ chế đằng sau đã thành **bất biến #12**.
 
-Kiểm chứng ở máy sau khi sửa: `eslint` sạch · `tsc --noEmit` sạch ·
-**231 test đơn vị** · **23 test e2e** (thêm 1) · 7 viewport từ 375×667 tới
-1440×900 đều `canvas <= khung`. Đã kiểm đỏ-xanh: bỏ đúng dòng
-`getParentBounds()` thì test đỏ lại.
+Lỗi đó cũng từng bị **che một lần**: bản sửa `overflow-hidden` cho khung bàn
+(PR #1) chặn được việc canvas tràn ra ăn pointer, nhưng để nguyên nguyên nhân là
+canvas sai cỡ — nên triệu chứng đổi từ "không bấm được nút" thành "mất hai hàng
+ô", và cái sau khó thấy hơn cái trước.
 
 ## Việc tiếp theo
 
