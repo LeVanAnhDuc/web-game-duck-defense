@@ -101,14 +101,27 @@ function MapCard({
         : t('mapSelect.notPlayed');
 
   return (
+    /*
+     * KHÔNG có `!min-h-0` ở đây, và đó là cả phát hiện F-03 — bất biến #13.
+     *
+     * Thẻ này là grid item. Bỏ sàn `min-height` đi thì nó mất luôn "automatic
+     * minimum size", nên khi lưới thiếu chỗ dọc nó KHÔNG đẩy container ra cuộn —
+     * nó nén mọi hàng xuống cho vừa. Ở 375×720 lưới một cột, năm hàng bị ép còn
+     * 99px mỗi hàng; thumbnail `flex-none` giữ nguyên 88px, khối chữ cao 76px chỉ
+     * còn ~11px, và `overflow-hidden` nuốt trọn. Không lỗi console, không chữ cắt
+     * dở — mất sạch tên bản đồ, trạng thái và lý do khoá. Trên desktop lưới có
+     * 2-3 cột nên mỗi hàng đủ chỗ và lỗi không bao giờ lộ ra.
+     *
+     * `min-h-fit` là cái khoá: thẻ không bao giờ được nhỏ hơn nội dung của nó.
+     */
     <Press
       variant={locked ? 'sunken' : 'raised'}
       disabled={locked}
       onClick={() => onPick(mapId)}
-      className="!min-h-0 flex flex-col overflow-hidden !rounded-[var(--radius-lg)] !p-0 text-left"
+      className="flex min-h-fit flex-row items-stretch overflow-hidden !rounded-[var(--radius-lg)] !p-0 text-left md:flex-col"
     >
       <span
-        className={`relative block h-[88px] w-full flex-none bg-letterbox md:h-28 ${
+        className={`relative block h-auto w-[104px] flex-none self-stretch bg-letterbox md:h-28 md:w-full ${
           locked ? 'grayscale-[0.8] brightness-[0.6]' : ''
         }`}
         aria-hidden
@@ -120,8 +133,8 @@ function MapCard({
           </span>
         )}
       </span>
-      <span className="flex w-full flex-col gap-1.5 px-3.5 pb-3 pt-2.5">
-        <span className="flex items-baseline gap-2">
+      <span className="flex min-w-0 flex-1 flex-col justify-center gap-1.5 px-3.5 py-3 md:justify-start md:pb-3 md:pt-2.5">
+        <span className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
           <span className="disp num text-[length:var(--text-lg)] font-extrabold text-dim">{number}.</span>
           <span className="disp text-[length:var(--text-lg)] font-extrabold">{t(`map.${mapId}` as StringKey)}</span>
           <span className="ml-auto">{badge}</span>

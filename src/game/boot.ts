@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import type { BattleSpeed } from '../bridge';
+import type { TowerTypeId } from '../data/towers';
 import { BattleScene, type BattleSceneConfig } from './BattleScene';
 
 export type GameHandle = {
@@ -14,6 +15,8 @@ export type GameHandle = {
    * giữ nguyên kích thước của bố cục trước.
    */
   refreshScale: () => void;
+  /** FR-33 — loại tháp đang xem trước ở ô đang chọn. `null` = không vẽ vòng nào. */
+  setPreviewTower: (towerId: TowerTypeId | null) => void;
 };
 
 /**
@@ -82,5 +85,6 @@ export function startGame(parent: HTMLElement, cfg: BattleSceneConfig): GameHand
     setSpeed: (speed) => scene.setSpeed(speed),
     setPaused: (paused) => scene.setPaused(paused),
     refreshScale: refresh,
+    setPreviewTower: (towerId) => scene.setPreviewTower(towerId),
   };
 }

@@ -79,3 +79,15 @@ KHÔNG chứa: cách hiện thực, ngưỡng phi chức năng (-> nfr.md), lý 
 | --- | --- | --- | --- |
 | FR-31 | Chạy trọn một trận không cần trình duyệt (mô phỏng headless) | — | xong |
 | FR-32 | Test khẳng định mỗi bản đồ thắng được ở mức nâng cấp tối thiểu | — | xong |
+
+## Sinh từ lượt chạy persona 2026-09-11
+
+Bốn chức năng dưới đây không đến từ brainstorm mà từ đo người dùng thật trên bản deploy —
+`docs/ux-reviews/2026-09-11-persona-run.md`. Thiết kế: `docs/specs/ux-fixes-persona-2026-09/`.
+
+| ID | Chức năng | Thuộc luồng | Trạng thái |
+| --- | --- | --- | --- |
+| FR-33 | Thấy tầm bắn và số liệu của tháp **trước khi** trả tiền (xây thành ba bước, ADR-0009) | US-01 | xong |
+| FR-34 | Nhãn màn tiêu đề và thẻ bản đồ gọi con số đợt là **kỷ lục**, không phải điểm chơi tiếp | US-03 | xong |
+| FR-35 | Thẻ bản đồ hiện đủ tên · trạng thái · lý do khoá ở **mọi** bề rộng, kể cả 375 | US-03 | xong |
+| FR-36 | Focus không bao giờ rơi về `<body>` khi màn hình đổi hoặc nút tự tắt | US-01 | xong |

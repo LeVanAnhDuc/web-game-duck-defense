@@ -29,6 +29,9 @@ a test rather than by hope.
   - A loss still pays out, and replaying a cleared map pays far less than a
     first clear — so grinding the easy map is never the optimal move.
   - Every map is winnable with **no upgrades at all**, and a test enforces it.
+  - Picking a tower shows its range ring and its damage, range and fire rate on
+    the board **before** you pay for it — winnable and learnable are not the
+    same thing, and blind placement was losing people their first map.
     Nobody can get stuck behind a wall they have to grind through.
 - **Plays the same everywhere**
   - Touch and mouse are equal citizens: nothing is reachable only by hover, and

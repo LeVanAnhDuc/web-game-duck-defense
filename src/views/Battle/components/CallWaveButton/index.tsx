@@ -7,11 +7,22 @@ export function CallWaveButton({
   snap, t, onCall, short = false, className = '',
 }: { snap: BattleSnapshot; t: Translate; onCall: () => void; short?: boolean; className?: string }) {
   const enabled = snap.phase === 'prep';
+  /*
+   * `aria-disabled`, KHÔNG phải `disabled` — NFR-A11Y-02.
+   *
+   * Nút này tự tắt ngay khoảnh khắc người chơi bấm nó. Với `disabled` thật, nút
+   * rời tab order trong cùng một frame và trình duyệt thả focus về `<body>`:
+   * người chỉ dùng bàn phím vừa gọi đợt xong là mất dấu vòng focus, đúng một
+   * trong hai lần mất dấu mà persona bàn phím đo được. `aria-disabled` trông y
+   * hệt, vẫn được đọc là "không dùng được", nhưng giữ người chơi ở nguyên chỗ.
+   *
+   * Đổi lại, `aria-disabled` KHÔNG tự chặn click — phải tự chặn ở đây.
+   */
   return (
     <Press
       variant="primary"
-      disabled={!enabled}
-      onClick={onCall}
+      aria-disabled={!enabled}
+      onClick={enabled ? onCall : undefined}
       className={[
         'disp flex items-center justify-center gap-2 px-2 font-extrabold',
         short ? 'text-[length:var(--text-md)]' : 'text-[length:var(--text-lg)] gap-2.5',

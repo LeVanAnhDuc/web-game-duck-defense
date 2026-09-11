@@ -54,8 +54,26 @@ export type BattleSnapshot = {
   occupiedSlots: number[];
   /** Thành phần đợt tiếp theo, gộp theo loại (FR-24). */
   nextWave: { enemyId: EnemyTypeId; count: number }[];
-  /** Giá xây từng loại tháp đã mở, và có đủ tiền hay không. */
-  buildOptions: { towerId: TowerTypeId; cost: number; affordable: boolean }[];
+  /**
+   * Giá xây từng loại tháp đã mở, và số liệu bậc 1 của nó — FR-33.
+   *
+   * `damage` / `range` / `cooldownTicks` đọc từ `rules.towers[id].levels[0]`, tức
+   * là **đã áp bậc nâng cấp toàn cục** (invariants #8). Con số hiện ra vì thế là
+   * con số thật của trận này, không phải số gốc trong `data/`.
+   *
+   * Chúng ở đây để người chơi đọc được TRƯỚC khi trả tiền. Trước đó bảng chọn
+   * tháp chỉ có tên và một dòng mô tả, nên 2/3 persona tự đặt tháp trên bản đồ 1
+   * đều đặt ngoài tầm với của đường đi và thua với ~0 địch bị diệt.
+   */
+  buildOptions: {
+    towerId: TowerTypeId;
+    cost: number;
+    affordable: boolean;
+    damage: number;
+    /** Bán kính thật, không phải bình phương — UI hiện số này cho người đọc. */
+    range: number;
+    cooldownTicks: number;
+  }[];
   killed: number;
   leaked: number;
 };

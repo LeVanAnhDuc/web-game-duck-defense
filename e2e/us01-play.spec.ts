@@ -26,6 +26,19 @@ const waveText = (page: Page) => page.getByRole('progressbar', { name: /Đợt|W
 const towerCard = (page: Page, name: string) =>
   page.getByTestId('tower-cards').getByRole('button', { name });
 
+/**
+ * Xây một tháp — BA bước kể từ FR-33: chọn ô, chọn loại, xác nhận.
+ *
+ * Bước thứ ba tồn tại để người chơi nhìn thấy vòng tầm bắn trước khi trả tiền.
+ * Không có nó, hai trong ba persona tự đặt tháp trên bản đồ 1 đã đặt ngoài tầm
+ * với của đường đi và thua với gần như không giết được con nào.
+ */
+async function buildTower(page: Page, slot: string, tower: string) {
+  await page.getByRole('button', { name: slot }).click();
+  await towerCard(page, tower).click();
+  await page.getByRole('button', { name: /^XÂY · / }).click();
+}
+
 async function enterBattle(page: Page) {
   await page.goto('/');
   await page.getByRole('button', { name: /^CHƠI/ }).first().click();
@@ -43,8 +56,13 @@ test('xây tháp trừ đúng tiền, và một lần chạm ô không bao giờ
   await page.getByRole('button', { name: 'Ô số 8' }).click();
   expect(await gold(page)).toBe(260);
 
-  // Thao tác thứ hai mới xây.
+  // Chạm thẻ tháp: vẫn CHỈ chọn — FR-33. Đây là thao tác từng trừ tiền ngay, và
+  // chính nó làm người chơi mua một tháp trước khi biết nó bắn tới đâu.
   await towerCard(page, 'Cung').click();
+  expect(await gold(page)).toBe(260);
+
+  // Thao tác thứ BA mới trả tiền.
+  await page.getByRole('button', { name: /^XÂY · / }).click();
   await expect.poll(() => gold(page)).toBe(200);
 });
 
@@ -54,8 +72,7 @@ test('không đủ tiền thì thẻ tháp bị vô hiệu hoá, không phải i
 
   // Tiêu gần hết: 260 → xây hai Pháo (110 mỗi cái) còn 40.
   for (const slot of ['Ô số 8', 'Ô số 9']) {
-    await page.getByRole('button', { name: slot }).click();
-    await towerCard(page, 'Pháo').click();
+    await buildTower(page, slot, 'Pháo');
   }
   await expect.poll(() => gold(page)).toBe(40);
 
@@ -70,8 +87,7 @@ test('gọi đợt: enemy ra, bị bắn, chết ra tiền, rồi sang đợt 2'
 
   // Ba tháp quanh đoạn đầu đường để đợt 1 chắc chắn bị diệt sạch.
   for (const slot of ['Ô số 8', 'Ô số 9', 'Ô số 3']) {
-    await page.getByRole('button', { name: slot }).click();
-    await towerCard(page, 'Cung').click();
+    await buildTower(page, slot, 'Cung');
   }
 
   const goldAfterBuilding = await gold(page);
@@ -100,14 +116,12 @@ test('bán tháp trả lại tiền, và ô đó xây lại được', async ({ 
   await page.setViewportSize({ width: 1440, height: 900 });
   await enterBattle(page);
 
-  await page.getByRole('button', { name: 'Ô số 8' }).click();
-  await towerCard(page, 'Cung').click();
+  await buildTower(page, 'Ô số 8', 'Cung');
   await expect.poll(() => gold(page)).toBe(200);
 
   await page.getByRole('button', { name: /^Bán/ }).click();
   await expect.poll(() => gold(page)).toBe(230); // nửa của 60, làm tròn xuống
 
-  await page.getByRole('button', { name: 'Ô số 8' }).click();
-  await towerCard(page, 'Cung').click();
+  await buildTower(page, 'Ô số 8', 'Cung');
   await expect.poll(() => gold(page)).toBe(170);
 });

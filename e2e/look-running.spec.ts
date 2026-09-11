@@ -15,6 +15,7 @@ test('chup tran dang chay', async ({ page }) => {
   ] as const) {
     await page.getByRole('button', { name: slot }).click();
     await towerCard(page, tower).click();
+    await page.getByRole('button', { name: /^XÂY · / }).click();
     await page.waitForTimeout(150);
   }
 

@@ -18,6 +18,18 @@ KHÔNG chứa: tính năng ngoài phạm vi (-> 01-product/overview.md §Non-Goa
 
 ## Đang làm
 
+**Nhánh `fix/ux-persona-2026-09` — sửa 4 phát hiện UX từ lượt chạy persona 2026-09-11.**
+Kế hoạch và trạng thái từng task: `docs/specs/ux-fixes-persona-2026-09/plan.md`.
+FR-33 (thấy tầm bắn trước khi trả tiền, ADR-0009) · FR-34 (nhãn gọi con số là kỷ lục) ·
+FR-35 (thẻ bản đồ đọc được ở 375, bất biến #13) · FR-36 (focus không rơi về `<body>`).
+Code xong, đang chạy nốt e2e và soi app thật ở 4 mốc bề rộng.
+
+**Chưa làm, cố ý:** F-05 (từ vựng tài chính) — đánh đổi đã chọn theo `overview.md` §3;
+F-06 (tương phản ô xây, thứ hạng thị giác màn kết) — Medium, xứng một pass riêng;
+F-07 (không thấy nâng cấp đã áp vào đâu) — Low, FR-33 đã trả một phần.
+
+---
+
 _(trống)_ — **v0.1.1 đã chạy thật.** https://levananhduc.github.io/web-game-duck-defense/
 
 Cả 32 FR ở `scope.md` là `xong`, trong đó FR-18 **xong ở phạm vi đã thu hẹp**
