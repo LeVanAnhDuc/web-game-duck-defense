@@ -18,19 +18,15 @@ KHÔNG chứa: tính năng ngoài phạm vi (-> 01-product/overview.md §Non-Goa
 
 ## Đang làm
 
-**UX persona review (2026-09-11) — đã dò xong năng lực, đang CHỜ KẾT NỐI LẠI MCP `playwright`.**
-Vướng đầu tiên đã sửa xong: `.claude/agents/ux-persona.md` từng khai `tools: mcp__playwright__*`,
-không khớp tên server thật `plugin_playwright_playwright`; dòng `tools:` đã đổi thành danh sách
-tên tool đầy đủ và khởi động lại phiên đã nạp được.
-Vướng còn lại là **không có trình duyệt nào**: `playwright` `CONNECT_TIMEOUT` (>30s),
-`chrome-devtools-mcp` bật nhưng không ra tool, `claude-in-chrome` extension chưa kết nối.
-Nguyên nhân: plugin chạy `npx @playwright/mcp@latest`, `@latest` bắt hỏi registry mỗi lần bật.
-Đã làm nóng cache (`Version 0.0.80`, khởi động 8,8s, browser binary đủ) ⇒ chỉ cần **kết nối lại
-server** là chạy thẳng. Mọi số đo và quyết định ở
-`.claude/skills/ux-persona-review/runs/_capability-probe-2026-09-11.md` (gitignored):
-throttle mạng KHÔNG dùng được, đường nền trình duyệt ~1.4 Mbps / RTT ~450 ms (≈ Slow 4G) nên mô
-phỏng bằng cache lạnh/nóng; 1 context dùng chung nên 7 phiên chạy tuần tự, phải tự xoá
-localStorage giữa các phiên (riêng p04/RR-03 phải dựng sẵn tiến độ).
+**Nhánh `fix/ux-persona-2026-09` — sửa 4 phát hiện UX từ lượt chạy persona 2026-09-11.**
+Kế hoạch và trạng thái từng task: `docs/specs/ux-fixes-persona-2026-09/plan.md`.
+FR-33 (thấy tầm bắn trước khi trả tiền, ADR-0009) · FR-34 (nhãn gọi con số là kỷ lục) ·
+FR-35 (thẻ bản đồ đọc được ở 375, bất biến #13) · FR-36 (focus không rơi về `<body>`).
+Code xong, đang chạy nốt e2e và soi app thật ở 4 mốc bề rộng.
+
+**Chưa làm, cố ý:** F-05 (từ vựng tài chính) — đánh đổi đã chọn theo `overview.md` §3;
+F-06 (tương phản ô xây, thứ hạng thị giác màn kết) — Medium, xứng một pass riêng;
+F-07 (không thấy nâng cấp đã áp vào đâu) — Low, FR-33 đã trả một phần.
 
 ---
 

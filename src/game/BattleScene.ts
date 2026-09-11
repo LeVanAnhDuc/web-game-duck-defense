@@ -11,6 +11,7 @@ import type { UpgradeState } from '../core/upgrades';
 import { ENEMIES } from '../data/enemies';
 import type { EnemyTypeId } from '../data/enemies';
 import type { MapId } from '../data/maps';
+import type { TowerTypeId } from '../data/towers';
 import type { BattleOutcome } from '../core/runBattle';
 import { playSound } from './audio';
 import { readPalette, type Palette } from './palette';
@@ -77,6 +78,7 @@ export class BattleScene extends Phaser.Scene {
   private speed: BattleSpeed = 1;
   private paused = false;
   private selection: Selection = null;
+  private previewTower: TowerTypeId | null = null;
   private finished = false;
 
   /** `s` của mỗi enemy ở tick trước, để nội suy vị trí giữa hai tick. */
@@ -132,6 +134,17 @@ export class BattleScene extends Phaser.Scene {
 
   setPaused(paused: boolean): void {
     this.paused = paused;
+  }
+
+  /**
+   * Loại tháp đang được XEM TRƯỚC ở ô đang chọn — FR-33.
+   *
+   * Không phải một lệnh xây, và không đụng tới `battle.state`: nó chỉ đổi thứ
+   * `drawOverlay` vẽ ra. Ý định xây vẫn đi qua `applyIntent` ở ranh giới tick
+   * như cũ (invariants #5).
+   */
+  setPreviewTower(towerId: TowerTypeId | null): void {
+    this.previewTower = towerId;
   }
 
   setSelection(selection: Selection): void {
@@ -341,7 +354,15 @@ export class BattleScene extends Phaser.Scene {
       nextWave: [...grouped].map(([enemyId, count]) => ({ enemyId, count })),
       buildOptions: rules.unlockedTowers.map((towerId) => {
         const cost = buildCost(rules, towerId);
-        return { towerId, cost, affordable: state.gold >= cost };
+        const lv = rules.towers[towerId].levels[0];
+        return {
+          towerId,
+          cost,
+          affordable: state.gold >= cost,
+          damage: lv.damage,
+          range: Math.sqrt(lv.rangeSq),
+          cooldownTicks: lv.cooldownTicks,
+        };
       }),
       killed: state.stats.killed,
       leaked: state.stats.leaked,
@@ -538,6 +559,16 @@ export class BattleScene extends Phaser.Scene {
     if (!sel) return;
 
     if (sel.kind === 'slot') {
+      // FR-33 — vòng tầm bắn của loại tháp đang XEM TRƯỚC, vẽ TRƯỚC khi trả tiền.
+      // Vẽ trước khung ô để khung ô nằm trên, không bị vòng tròn làm mờ mép.
+      if (this.previewTower) {
+        const lv = this.battle.rules.towers[this.previewTower].levels[0];
+        const range = Math.sqrt(lv.rangeSq);
+        g.fillStyle(p.act, 0.1).fillCircle(sel.x, sel.y, range);
+        // Nét ĐỨT, khác hẳn nét liền của tháp đã xây: "cái này chưa có thật".
+        // Màu thì không đủ — NFR-A11Y-06 đòi kênh thứ hai ngoài màu.
+        this.strokeDashedCircle(g, sel.x, sel.y, range, p.act);
+      }
       g.fillStyle(p.act, 0.24).fillRoundedRect(sel.x - 21, sel.y - 21, 42, 42, 9);
       g.lineStyle(4, p.act, 1).strokeRoundedRect(sel.x - 21, sel.y - 21, 42, 42, 9);
       return;
@@ -552,5 +583,29 @@ export class BattleScene extends Phaser.Scene {
     g.fillStyle(p.act, 0.13).fillCircle(sel.x, sel.y, range);
     g.lineStyle(3, p.act, 1).strokeCircle(sel.x, sel.y, range);
     g.lineStyle(4, p.act, 1).strokeCircle(sel.x, sel.y, TOWER_BASE_SIZE / 2 + 3);
+  }
+
+  /**
+   * Đường tròn nét đứt. Phaser `Graphics` không có `setLineDash`, nên vẽ tay
+   * từng cung — 48 đoạn, vẽ một bỏ một.
+   */
+  private strokeDashedCircle(
+    g: Phaser.GameObjects.Graphics,
+    cx: number,
+    cy: number,
+    r: number,
+    color: number,
+  ): void {
+    const SEGMENTS = 48;
+    const step = (Math.PI * 2) / SEGMENTS;
+    g.lineStyle(3, color, 1);
+    for (let i = 0; i < SEGMENTS; i += 2) {
+      const a0 = i * step;
+      const a1 = a0 + step;
+      g.beginPath();
+      g.moveTo(cx + Math.cos(a0) * r, cy + Math.sin(a0) * r);
+      g.lineTo(cx + Math.cos(a1) * r, cy + Math.sin(a1) * r);
+      g.strokePath();
+    }
   }
 }

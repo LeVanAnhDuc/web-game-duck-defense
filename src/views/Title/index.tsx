@@ -18,8 +18,13 @@ type Props = {
  * Màn tiêu đề. MỘT hành động chính, đúng pattern hero-centric mà bước 1 của
  * `design-bootstrap` giữ lại cho riêng màn này (`MASTER.md` §10).
  *
- * Nút chính đổi chữ theo tiến trình: người mới thấy "CHƠI", người quay lại thấy
- * "CHƠI TIẾP" kèm tên bản đồ đang dở (US-03). Hai nút phụ không tranh chỗ với nó.
+ * Nút chính LUÔN là "CHƠI", kể cả khi đã có tiến trình — FR-34.
+ *
+ * Bản trước ghi "CHƠI TIẾP" kèm "đợt 9/14", và 2/2 persona có tiến trình sẵn đều
+ * đọc ra là "bấm vào sẽ chơi tiếp từ đợt 9". Không có gì chơi tiếp cả: mỗi lần vào
+ * bản đồ là một trận mới từ đợt 1, và điều đó không đổi được — ghi profile chỉ xảy
+ * ra khi trận KẾT THÚC (invariants #11), nên giữa trận không có gì để lưu lại mà
+ * quay về. Con số đó là KỶ LỤC, nên dòng phụ gọi nó bằng đúng tên (`title.lastMap`).
  */
 export function TitleScreen({ onPlay, onMaps, onWorkshop, onSettings }: Props) {
   const { t, locale, setLocale } = useLocale();
@@ -62,7 +67,7 @@ export function TitleScreen({ onPlay, onMaps, onWorkshop, onSettings }: Props) {
             className="disp flex h-14 items-center justify-center gap-2.5 text-[length:var(--text-lg)] font-extrabold md:h-16 md:text-[length:var(--text-xl2)]"
           >
             <IconPlay size={19} />
-            {hasProgress ? t('title.continue') : t('title.play')}
+            {t('title.play')}
           </Press>
           {hasProgress && (
             <p className="text-center text-[length:var(--text-sm)] text-dim">

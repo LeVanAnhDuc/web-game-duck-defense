@@ -34,6 +34,7 @@ test('nâng cấp làm mới panel: bậc và giá đổi theo, không đứng �
 
   await page.getByRole('button', { name: 'Ô số 8' }).click();
   await towerCard(page, 'Cung').click();
+  await page.getByRole('button', { name: /^XÂY · / }).click();
 
   await expect(page.getByText('Cung · Bậc 1')).toBeVisible();
   await expect(page.getByRole('button', { name: /^Nâng 60/ })).toBeVisible();
@@ -51,6 +52,7 @@ test('nâng tới bậc cuối thì panel nói "đã tối đa", không mời n�
 
   await page.getByRole('button', { name: 'Ô số 8' }).click();
   await towerCard(page, 'Cung').click();
+  await page.getByRole('button', { name: /^XÂY · / }).click();
   await page.getByRole('button', { name: /^Nâng 60/ }).click();
   await page.getByRole('button', { name: /^Nâng 110/ }).click();
 
@@ -69,6 +71,7 @@ test('Space trên một nút đang focus bấm CHÍNH nút đó, không gọi đ
 
   await page.getByRole('button', { name: 'Ô số 8' }).click();
   await towerCard(page, 'Cung').click();
+  await page.getByRole('button', { name: /^XÂY · / }).click();
   const goldBefore = await gold(page);
 
   await page.getByRole('button', { name: /^Nâng 60/ }).focus();
@@ -79,14 +82,14 @@ test('Space trên một nút đang focus bấm CHÍNH nút đó, không gọi đ
   await expect(page.getByText('Cung · Bậc 2')).toBeVisible();
 
   // Và đợt KHÔNG bị gọi: nút gọi đợt vẫn còn bấm được.
-  await expect(page.getByRole('button', { name: /GỌI ĐỢT TIẾP THEO/ })).toBeEnabled();
+  await expect(page.getByRole('button', { name: /GỌI ĐỢT TIẾP THEO/ })).toHaveAttribute('aria-disabled', 'false');
 });
 
 test('Space khi không focus nút nào thì vẫn gọi đợt', async ({ page }) => {
   await enterBattle(page);
   await page.locator('body').click({ position: { x: 5, y: 400 } });
   await page.keyboard.press('Space');
-  await expect(page.getByRole('button', { name: /GỌI ĐỢT TIẾP THEO/ })).toBeDisabled();
+  await expect(page.getByRole('button', { name: /GỌI ĐỢT TIẾP THEO/ })).toHaveAttribute('aria-disabled', 'true');
 });
 
 /**
@@ -99,6 +102,7 @@ test('ô đã xây được đọc là "đã xây", không đọc như ô trốn
 
   await page.getByRole('button', { name: 'Ô số 8' }).click();
   await towerCard(page, 'Cung').click();
+  await page.getByRole('button', { name: /^XÂY · / }).click();
 
   // Chọn sang một ô khác để ô 8 không còn là ô đang chọn.
   await page.getByRole('button', { name: 'Ô số 3' }).click();

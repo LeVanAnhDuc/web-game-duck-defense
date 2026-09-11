@@ -65,6 +65,7 @@ export function BattleScreen({ mapId, upgrades, onFinish, onQuit }: Props) {
   const { profile } = useProfileState();
   const hostRef = useRef<HTMLDivElement | null>(null);
   const handleRef = useRef<GameHandle | null>(null);
+  const backRef = useRef<HTMLButtonElement | null>(null);
   const [pickedTower, setPickedTower] = useState<TowerTypeId | null>(null);
   /** NFR-REL-03 — nạp asset thất bại thì HIỆN LỖI + cho thử lại, không treo. */
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -117,47 +118,63 @@ export function BattleScreen({ mapId, upgrades, onFinish, onQuit }: Props) {
     handleRef.current?.refreshScale();
   }, [mode]);
 
+  /**
+   * NFR-A11Y-02 — đặt focus vào màn trận ngay khi nó hiện ra.
+   *
+   * Màn tiêu đề bị thay bằng màn này, nên nút "CHƠI" mà người dùng bàn phím vừa
+   * bấm biến mất và focus rơi về `<body>`: không còn vòng focus nào trên màn hình
+   * và không biết Tab tiếp sẽ đi đâu.
+   *
+   * Chỉ nhận focus khi nó đang thật sự vô chủ. Người dùng chuột không bị cướp
+   * focus, và nếu có phần tử nào khác đã kịp nhận thì để yên cho nó.
+   *
+   * Phụ thuộc `ready` chứ không phải `[]`: cả thanh HUD — nút back nằm trong đó —
+   * chỉ render sau khi snapshot ĐẦU TIÊN từ Phaser tới. Chạy một lần lúc mount
+   * thì `backRef` còn null và không có gì nhận focus cả, đúng lỗi mà test
+   * "focus không bao giờ rơi về <body>" bắt được.
+   */
+  const ready = snap !== null;
+  useEffect(() => {
+    if (!ready) return;
+    const active = document.activeElement;
+    if (active && active !== document.body) return;
+    backRef.current?.focus();
+  }, [ready]);
+
   // Callback cho ghost phải ỔN ĐỊNH: ghost chạy lại theo nó.
   const applyVolume = useCallback((volume: number) => setAudioVolume(volume), []);
 
   const selection = snap?.selection ?? null;
 
-  const pickSlot = useCallback(
-    (slotIndex: number) => {
-      const occupied = snap?.occupiedSlots.includes(slotIndex) ?? false;
-
-      // Đã chọn trước loại tháp thì lần chạm ô TRỐNG này là thao tác thứ hai:
-      // xây. Ô ĐÃ CÓ THÁP thì chọn tháp đó — đẩy một ý định xây vào ô đã xây sẽ
-      // bị `applyIntent` từ chối im lặng, và lần chạm không cho phản hồi nào.
-      if (pickedTower && !occupied) {
-        pushIntent({ kind: 'build', slotIndex, towerId: pickedTower });
-        setPickedTower(null);
-        return;
-      }
-      pushIntent({ kind: 'select', target: { kind: 'slot', slotIndex } });
-    },
-    [pickedTower, snap],
-  );
+  /**
+   * Chạm một ô. KHÔNG BAO GIỜ trả tiền — FR-33.
+   *
+   * Bản trước: đang có loại tháp chọn sẵn mà chạm ô trống là xây luôn, trừ tiền
+   * ngay. Người chơi vì thế không bao giờ thấy được tầm bắn trước khi mua, và
+   * 2/3 persona tự đặt tháp trên bản đồ 1 đã đặt ngoài tầm với của đường đi rồi
+   * thua với ~0 địch bị diệt. Giờ lần chạm này chỉ CHỌN Ô; vòng tầm bắn của loại
+   * tháp đang chọn hiện ra ngay, và tiền chỉ đi khi bấm nút xây.
+   */
+  const pickSlot = useCallback((slotIndex: number) => {
+    pushIntent({ kind: 'select', target: { kind: 'slot', slotIndex } });
+  }, []);
 
   /**
-   * Chạm một thẻ tháp.
+   * Chạm một thẻ tháp = CHỌN ỨNG VIÊN, không phải mua.
    *
-   * Đã chọn ô thì XÂY ngay. Chưa chọn ô thì chỉ ghi nhớ loại tháp, và lần chạm
-   * ô kế tiếp mới xây — cùng thứ tự với phím tắt `1 2 3`. Không có đường nào để
-   * một lần chạm vừa chọn ô vừa xây (US-01: "chạm vào ô là chọn ô, không bao
-   * giờ vô tình xây").
+   * Chạm lại đúng thẻ đang chọn thì bỏ chọn. Không có đường nào từ một lần chạm
+   * tới việc mất tiền — đó là cả điểm của FR-33.
    */
-  const build = useCallback(
-    (towerId: TowerTypeId) => {
-      if (selection?.kind !== 'slot') {
-        setPickedTower((current) => (current === towerId ? null : towerId));
-        return;
-      }
-      pushIntent({ kind: 'build', slotIndex: selection.slotIndex, towerId });
-      setPickedTower(null);
-    },
-    [selection],
-  );
+  const pickTower = useCallback((towerId: TowerTypeId) => {
+    setPickedTower((current) => (current === towerId ? null : towerId));
+  }, []);
+
+  /** Thao tác DUY NHẤT trả tiền. */
+  const confirmBuild = useCallback(() => {
+    if (selection?.kind !== 'slot' || !pickedTower) return;
+    pushIntent({ kind: 'build', slotIndex: selection.slotIndex, towerId: pickedTower });
+    setPickedTower(null);
+  }, [selection, pickedTower]);
 
   const upgrade = useCallback(() => {
     if (selection?.kind !== 'tower') return;
@@ -181,13 +198,18 @@ export function BattleScreen({ mapId, upgrades, onFinish, onQuit }: Props) {
     setPickedTower(null);
   }, []);
 
-  const chooseTower = useCallback(
-    (towerId: TowerTypeId, slotSelected: boolean) => {
-      if (slotSelected) build(towerId);
-      else setPickedTower(towerId);
-    },
-    [build],
-  );
+  // Phím `1 2 3` giờ làm ĐÚNG một việc như chạm thẻ: chọn ứng viên. Tham số
+  // `slotSelected` không còn đổi nghĩa gì nữa — giữ chữ ký để ghost không phải
+  // biết chuyện này, nhưng hai nhánh đã hợp lại làm một.
+  const chooseTower = useCallback((towerId: TowerTypeId) => pickTower(towerId), [pickTower]);
+
+  /**
+   * Vòng tầm bắn xem trước phải theo ứng viên, và phải TẮT khi không còn ô nào
+   * được chọn — nếu không nó sẽ lơ lửng ở ô cũ sau khi bấm Esc.
+   */
+  useEffect(() => {
+    handleRef.current?.setPreviewTower(selection?.kind === 'slot' ? pickedTower : null);
+  }, [pickedTower, selection]);
 
   const towerRow = snap ? (
     // `data-testid` để e2e khoanh vùng truy vấn: nhãn của nút Ô trên overlay
@@ -202,22 +224,74 @@ export function BattleScreen({ mapId, upgrades, onFinish, onQuit }: Props) {
           affordable={option.affordable}
           selected={pickedTower === option.towerId}
           t={t}
-          onPick={() => build(option.towerId)}
+          onPick={() => pickTower(option.towerId)}
         />
       ))}
     </div>
   ) : null;
 
+  const shownTower = pickedTower ?? snap?.buildOptions[0]?.towerId ?? null;
+  const shownOption = snap?.buildOptions.find((o) => o.towerId === shownTower) ?? null;
+  const slotSelected = selection?.kind === 'slot';
+  const canBuild = slotSelected && pickedTower !== null && (shownOption?.affordable ?? false);
+
+  /**
+   * Nút xác nhận — chỗ DUY NHẤT tiền rời khỏi túi người chơi (FR-33).
+   *
+   * Tách riêng vì nó phải có mặt ở CẢ BA bố cục. Bố cục ngang hẹp chỉ render
+   * `towerRow` chứ không render cả `buildPanel`, nên nếu nút này nằm bên trong
+   * `buildPanel` thì ở màn ngang hẹp người chơi chọn được tháp mà không bao giờ
+   * xây được — luồng ba bước mà thiếu bước ba thì thành ngõ cụt.
+   */
+  const confirmRow =
+    snap && slotSelected ? (
+      <div className="flex gap-2.5">
+        <Press
+          variant="primary"
+          disabled={!canBuild}
+          onClick={confirmBuild}
+          className="disp flex min-w-0 flex-1 items-center justify-center gap-2 text-[length:var(--text-md)] font-extrabold"
+        >
+          <span className="truncate">
+            {pickedTower && shownOption
+              ? t('battle.confirmBuild', { cost: shownOption.cost })
+              : t('battle.pickTowerFirst')}
+          </span>
+        </Press>
+        <Press
+          onClick={clearSelection}
+          aria-label={t('common.cancel')}
+          className="disp flex flex-none items-center justify-center px-3 text-[length:var(--text-md)] font-bold"
+        >
+          {t('common.cancel')}
+        </Press>
+      </div>
+    ) : null;
+
   const buildPanel = snap ? (
     <div className="flex flex-col gap-3">
-      <h2 className="disp text-[length:var(--text-lg)] font-extrabold">{t('battle.buildTower')}</h2>
+      {/* Tiêu đề chỉ ở bố cục rộng. Ở dọc, bảng này sống trong thanh đáy và mỗi
+          pixel nó lấy là một pixel bàn chơi mất — mà ba thẻ tháp có giá kèm icon
+          xu thì đã tự nói nó là gì rồi. */}
+      <h2 className="disp hidden text-[length:var(--text-lg)] font-extrabold md:block">
+        {t('battle.buildTower')}
+      </h2>
       {towerRow}
-      <TowerDetail towerId={pickedTower ?? snap.buildOptions[0]?.towerId ?? null} t={t} />
+      <TowerDetail option={shownOption} t={t} />
+      {/* Nút này là chỗ DUY NHẤT tiền rời khỏi túi người chơi — FR-33. Nó chỉ
+          sống khi đã có ô được chọn, nên không bao giờ có chuyện bấm nhầm nó mà
+          không biết tháp sẽ mọc ở đâu. */}
+      {confirmRow}
     </div>
   ) : null;
 
   const backButton = (
-    <Press onClick={onQuit} aria-label={t('common.back')} className="flex w-11 items-center justify-center">
+    <Press
+      ref={backRef}
+      onClick={onQuit}
+      aria-label={t('common.back')}
+      className="flex w-11 items-center justify-center"
+    >
       <IconBack size={20} />
     </Press>
   );
@@ -304,14 +378,22 @@ export function BattleScreen({ mapId, upgrades, onFinish, onQuit }: Props) {
           ) : (
             <NextWaveStrip snap={snap} t={t} />
           )}
-          <div className="flex items-center gap-2.5">
-            <SpeedControl snap={snap} t={t} onChange={setSpeed} />
-            {!selection && (
-              <span className="ml-auto text-[length:var(--text-sm)] text-dim">
-                {t('battle.tapSlotToBuild')}
-              </span>
-            )}
-          </div>
+          {/* Hàng tốc độ biến mất trong lúc đang chọn chỗ đặt tháp.
+              Ở 375px thanh đáy và bàn chơi chia nhau cùng một chiều cao: bảng xây
+              mở ra là bàn chơi tụt từ 375px xuống ~206px, mà bàn chơi lại đúng là
+              chỗ người chơi phải nhìn để biết vòng tầm bắn có chạm đường đi không
+              (FR-33). Tốc độ x1/x2/x3 không giúp gì cho quyết định đó, và nó quay
+              lại ngay khi xây xong hoặc bấm Huỷ. */}
+          {selection?.kind !== 'slot' && (
+            <div className="flex items-center gap-2.5">
+              <SpeedControl snap={snap} t={t} onChange={setSpeed} />
+              {!selection && (
+                <span className="ml-auto text-[length:var(--text-sm)] text-dim">
+                  {t('battle.tapSlotToBuild')}
+                </span>
+              )}
+            </div>
+          )}
           <CallWaveButton snap={snap} t={t} onCall={callWave} />
         </footer>
       )}
@@ -332,6 +414,7 @@ export function BattleScreen({ mapId, upgrades, onFinish, onQuit }: Props) {
         <aside className="flex min-w-0 flex-col gap-2.5 overflow-y-auto border-l-2 border-edge bg-panel p-3 [grid-area:bottom]">
           <SpeedControl snap={snap} t={t} onChange={setSpeed} compact />
           {towerRow}
+          {confirmRow}
           {selection?.kind === 'tower' && (
             <SelectedTowerPanel snap={snap} t={t} onUpgrade={upgrade} onSell={sell} />
           )}

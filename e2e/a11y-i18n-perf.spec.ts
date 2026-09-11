@@ -46,7 +46,58 @@ test('đặt được tháp CHỈ bằng bàn phím, và focus luôn thấy đư
   expect(Number.parseFloat(outline?.width ?? '0')).toBeGreaterThan(0);
 
   await page.keyboard.press('Enter');
+
+  // FR-33 — chọn ô KHÔNG trả tiền. Trước đây Enter ở đây là xây luôn, nên người
+  // chơi không bao giờ thấy tầm bắn trước khi mua.
+  await expect(page.getByRole('button', { name: /^XÂY · |^BUILD · / })).toBeVisible();
+  expect(await gold(page)).toBe(260);
+
+  // Đi tiếp tới nút xây, vẫn chỉ bằng bàn phím, và focus không được rơi đi đâu.
+  let onBuild = false;
+  for (let i = 0; i < 20; i++) {
+    await page.keyboard.press('Tab');
+    expect(
+      await page.evaluate(() => document.activeElement !== document.body),
+      'focus rơi về <body> giữa chừng — NFR-A11Y-02',
+    ).toBe(true);
+    const text = await page.evaluate(() => document.activeElement?.textContent ?? '');
+    if (/^XÂY · |^BUILD · /.test(text)) {
+      onBuild = true;
+      break;
+    }
+  }
+  expect(onBuild, 'Tab không tới được nút xây').toBe(true);
+
+  await page.keyboard.press('Enter');
   await expect.poll(() => gold(page)).toBe(200);
+});
+
+/* ── NFR-A11Y-02 · FR-36 ─────────────────────────────────────────────────── */
+
+test('focus không bao giờ rơi về <body>, kể cả khi nút gọi đợt tự tắt', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/');
+
+  // Vào trận bằng bàn phím: màn tiêu đề bị thay, nên nút vừa bấm biến mất.
+  const play = page.getByRole('button', { name: /^CHƠI|^PLAY/ }).first();
+  await play.focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('group', { name: /^Vàng|^Gold/ }).first()).toBeVisible();
+  expect(
+    await page.evaluate(() => document.activeElement !== document.body),
+    'vào trận xong focus rơi về <body>',
+  ).toBe(true);
+
+  // Nút gọi đợt tự tắt ngay khi bấm. Với `disabled` thật nó rời tab order và
+  // trình duyệt thả focus — đó là lần mất dấu thứ hai mà persona bàn phím đo được.
+  const callWave = page.getByRole('button', { name: /GỌI ĐỢT TIẾP THEO|CALL NEXT WAVE/ }).first();
+  await callWave.focus();
+  await page.keyboard.press('Enter');
+  await expect(callWave).toHaveAttribute('aria-disabled', 'true');
+  expect(
+    await page.evaluate(() => document.activeElement !== document.body),
+    'nút gọi đợt tắt xong focus rơi về <body>',
+  ).toBe(true);
 });
 
 test('Esc bỏ chọn, và Space gọi đợt khi không có nút nào đang focus', async ({ page }) => {
@@ -73,7 +124,12 @@ test('Esc bỏ chọn, và Space gọi đợt khi không có nút nào đang foc
   await page.locator('body').click({ position: { x: 5, y: 400 } });
   await page.keyboard.press('Space');
 
-  await expect(page.getByRole('button', { name: /GỌI ĐỢT TIẾP THEO/ })).toBeDisabled();
+  // `aria-disabled`, không phải `disabled` — FR-36. Nút phải Ở LẠI trong tab
+  // order sau khi tắt, nếu không người dùng bàn phím mất dấu focus ngay đó.
+  await expect(page.getByRole('button', { name: /GỌI ĐỢT TIẾP THEO/ })).toHaveAttribute(
+    'aria-disabled',
+    'true',
+  );
 });
 
 /* ── NFR-PERF-07 ─────────────────────────────────────────────────────────── */
@@ -86,9 +142,11 @@ test('HUD không cập nhật theo frame — trần 10Hz', async ({ page }) => {
   // Phải XÂY rồi mới đo: không có tháp thì trong 5 giây đầu chẳng có gì đổi —
   // enemy cần ~31 giây để đi hết 1072 đơn vị đường — và bộ đếm ra 0 vì HUD
   // đứng im, chứ không phải vì React ngoan.
+  // Ba bước, không phải hai — FR-33. Chạm thẻ tháp chỉ CHỌN, nút xây mới trả tiền.
   for (const slot of ['Ô số 8', 'Ô số 9', 'Ô số 3']) {
     await page.getByRole('button', { name: slot }).click();
     await page.getByTestId('tower-cards').getByRole('button', { name: 'Cung' }).click();
+    await page.getByRole('button', { name: /^XÂY · / }).click();
   }
   await page.getByRole('radio', { name: 'x3' }).click();
   await page.getByRole('button', { name: /GỌI ĐỢT TIẾP THEO/ }).click();

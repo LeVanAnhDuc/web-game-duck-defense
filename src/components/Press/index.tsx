@@ -1,3 +1,4 @@
+import { forwardRef } from 'react';
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 
 /**
@@ -31,9 +32,18 @@ const SURFACE: Record<Variant, string> = {
   sunken: 'bg-sunken text-ink',
 };
 
-export function Press({ variant = 'raised', className = '', children, ...rest }: Props) {
+/*
+ * `forwardRef` để màn trận đặt được focus vào một nút cụ thể khi màn hình đổi
+ * (NFR-A11Y-02). Không có ref thì chỗ gọi phải đi tìm nút bằng selector, và một
+ * selector là thứ lặng lẽ hỏng khi ai đó đổi nhãn.
+ */
+export const Press = forwardRef<HTMLButtonElement, Props>(function Press(
+  { variant = 'raised', className = '', children, ...rest },
+  ref,
+) {
   return (
     <button
+      ref={ref}
       type="button"
       className={[
         SURFACE[variant],
@@ -47,6 +57,14 @@ export function Press({ variant = 'raised', className = '', children, ...rest }:
         'disabled:cursor-not-allowed disabled:bg-sunken disabled:text-dim',
         'disabled:shadow-[0_4px_0_0_var(--ui-edge)] disabled:active:translate-y-0',
         'disabled:hover:brightness-100',
+        // `aria-disabled` trông y hệt `disabled` nhưng GIỮ nút trong tab order.
+        // Đây là cách chữa gốc cho NFR-A11Y-02: một nút `disabled` bị gỡ khỏi
+        // tab order ngay lúc nó disable, nên nếu nó đang giữ focus thì trình
+        // duyệt thả focus về `<body>` và người dùng bàn phím mất dấu hoàn toàn.
+        // Nút "gọi đợt" tự disable ngay sau khi bấm, nên nó rơi vào đúng bẫy đó.
+        'aria-disabled:cursor-not-allowed aria-disabled:bg-sunken aria-disabled:text-dim',
+        'aria-disabled:shadow-[0_4px_0_0_var(--ui-edge)] aria-disabled:active:translate-y-0',
+        'aria-disabled:hover:brightness-100',
         className,
       ].join(' ')}
       {...rest}
@@ -54,4 +72,4 @@ export function Press({ variant = 'raised', className = '', children, ...rest }:
       {children}
     </button>
   );
-}
+});
