@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { wavePercent, wavesDone } from '../../src/ui/battle/waveProgress';
+import { wavePercent, wavesDone } from '../../src/lib/waveProgress';
 
 type Snap = Parameters<typeof wavesDone>[0];
 const snap = (phase: Snap['phase'], waveNumber: number, waveCount = 12): Snap =>

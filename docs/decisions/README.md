@@ -15,6 +15,7 @@
 | [ADR-0005](0005-profile-trong-localstorage-co-schemaversion.md) | Một profile trong localStorage, một key, có schemaVersion từ ngày đầu | 2026-09-08 | accepted |
 | [ADR-0006](0006-toolchain-npm-vite-vitest-tailwind.md) | npm + Vite + Vitest + Tailwind, deploy tĩnh lên GitHub Pages | 2026-09-08 | accepted |
 | [ADR-0007](0007-base-tuong-doi-thay-cho-base-theo-ten-repo.md) | Dùng `base: './'` thay cho base tuyệt đối theo tên repo | 2026-09-08 | accepted |
+| [ADR-0008](0008-nhan-bo-quy-uoc-view-dung-chung.md) | Nhận bộ quy ước view dùng chung của workspace `web-game` | 2026-09-11 | accepted |
 <!-- END:auto -->
 
 Trạng thái: `accepted` · `superseded by ADR-00xx` · `deprecated`

@@ -1,8 +1,15 @@
+import { fileURLToPath } from 'node:url';
+
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
+  // Alias @/ -> src/ (R-13). Phai khai o CA HAI cho: tsconfig cho tsc, cho nay cho
+  // Vite va Vitest — thieu mot ben thi mot trong hai im lang khong hieu duong dan.
+  resolve: {
+    alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
+  },
   /**
    * `'./'` — đường dẫn TƯƠNG ĐỐI, không phải một base tuyệt đối theo tên repo.
    *

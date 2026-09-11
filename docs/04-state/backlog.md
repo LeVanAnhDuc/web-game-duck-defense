@@ -52,6 +52,14 @@ canvas sai cỡ — nên triệu chứng đổi từ "không bấm được nút
 | Thêm ô 1024 vào canvas mockup | MASTER.md §6 | thấp | Mốc 1024 đã có bố cục thật trong code và có e2e, chỉ thiếu artboard |
 
 ## Nợ kỹ thuật — cố ý làm tạm
+**`tests/balance/determinism.test.ts` đỏ trên máy dev** (2026-09-11, ADR-0008 §5).
+Ngưỡng 200ms, đo được 350-420ms. Đỏ cả khi chạy riêng nên không phải nhiễu do song
+song. **Không phải hồi quy của đợt refactor ADR-0008**: `src/core` `src/data`
+`src/bridge` `src/game` không bị chạm dòng nào, nên `runBattle` giống `main` từng byte.
+Hoặc ngưỡng được đặt trên một máy nhanh hơn, hoặc nó đã lỗi thời từ một thay đổi trước.
+**Buộc phải trả khi:** CI đỏ vì nó, hoặc khi có người tin con số 200ms là một ngưỡng
+đang được gác thật.
+
 
 | Chỗ nào | Đã đánh đổi gì | Vì sao chấp nhận | Khi nào buộc phải trả |
 | --- | --- | --- | --- |
