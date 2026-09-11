@@ -27,3 +27,7 @@ test-results/
 !/.claude/settings.local.json
 !/.claude/skills/
 !/.claude/scripts/
+
+# Repo nay dung npm (package-lock.json). Mot yarn.lock lot vao la hai lockfile
+# trong mot repo: CI cai bang mot cai, nguoi dev cai bang cai kia.
+yarn.lock
