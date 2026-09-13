@@ -47,7 +47,7 @@ Cùng cách các game khác trong `web-game/` làm (tetris: ADR-0011 của nó).
 
 **Được:**
 - Đổi tên repo không làm hỏng deploy.
-- `npm run preview` kiểm được đúng bản sẽ lên production.
+- `pnpm preview` kiểm được đúng bản sẽ lên production.
 - `.env.example` thật sự rỗng, khớp với NFR-SEC-04.
 - Bớt một script và một npm script phải bảo trì.
 
