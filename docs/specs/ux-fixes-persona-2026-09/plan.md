@@ -54,7 +54,7 @@ TDD mỗi task: test đỏ trước, code sau.
 
 - [x] 5.1 `scope.md`: FR-33…FR-36 trạng thái `xong`
 - [x] 5.2 README `## Features`: một dòng tiếng Anh
-- [x] 5.3 `npm run lint` sạch · `tsc --noEmit` sạch · `vitest` 230/231 · `playwright` 25/25
+- [x] 5.3 `pnpm lint` sạch · `tsc --noEmit` sạch · `vitest` 230/231 · `playwright` 25/25
       Một test đỏ **không phải của đợt này**: `tests/balance/determinism.test.ts` (ngưỡng
       200ms, đo 577-622ms) — đã nằm sẵn ở §Nợ kỹ thuật từ trước, và đợt này không chạm
       `core/` một dòng nào.

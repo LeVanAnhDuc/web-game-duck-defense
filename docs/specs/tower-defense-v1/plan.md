@@ -33,7 +33,7 @@
 
 **Architecture:** A pure-TypeScript simulation core with no browser dependency, driven at a fixed 60Hz timestep, rendered by Phaser 3 inside a canvas, wrapped by a React DOM shell that reaches the core only through a one-way bridge (intents down, a ≤10Hz snapshot up).
 
-**Tech Stack:** npm · Vite 7 · TypeScript · React 19 · Phaser 3 · Tailwind CSS 4 · Vitest · Playwright
+**Tech Stack:** pnpm · Vite 7 · TypeScript · React 19 · Phaser 3 · Tailwind CSS 4 · Vitest · Playwright
 
 **Spec:** [`docs/specs/tower-defense-v1/design.md`](design.md)
 
@@ -53,7 +53,7 @@ Copied verbatim from the permanent docs. Every task's requirements implicitly in
 - **No display string is hardcoded** outside `src/i18n/` (NFR-I18N-01). Build and test every layout with the **Vietnamese** strings first — they run ~30% longer than English (NFR-I18N-04).
 - **No state is distinguished by colour alone**; every state carries a second non-colour channel (NFR-A11Y-06).
 - **Terms are locked by** `docs/01-product/glossary.md`. Use `gold` for in-battle currency and `cores` for between-battle currency; never `money`/`coins`/`currency` for either. Use `Enemy`, `Wave`, `Slot`, `MapDef`, `s` — the banned synonyms are listed there.
-- **Node 22+, npm.** Never `yarn install` in this repo (ADR-0006).
+- **Node 22+, pnpm.** Never `yarn install` in this repo (ADR-0006).
 
 ---
 
@@ -120,7 +120,7 @@ e2e/*.spec.ts
 
 **Interfaces:**
 - Consumes: nothing
-- Produces: `npm run dev` · `npm run build` · `npm test` · `npm run test:e2e` · `npm run lint`. CSS variables `--ui-void --ui-panel --ui-edge --ui-ink --ui-dim --ui-act --ui-on-act --sem-gold --sem-core --sem-danger --sem-ok --letterbox --sunken --raised` on `:root`, plus Tailwind theme keys `bg-void bg-panel bg-sunken bg-raised text-ink text-dim text-act border-edge`.
+- Produces: `pnpm dev` · `pnpm build` · `pnpm test` · `pnpm test:e2e` · `pnpm lint`. CSS variables `--ui-void --ui-panel --ui-edge --ui-ink --ui-dim --ui-act --ui-on-act --sem-gold --sem-core --sem-danger --sem-ok --letterbox --sunken --raised` on `:root`, plus Tailwind theme keys `bg-void bg-panel bg-sunken bg-raised text-ink text-dim text-act border-edge`.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -139,15 +139,15 @@ describe('constants', () => {
 
 - [ ] **Step 2: Run it to make sure it fails**
 
-Run: `npm test -- smoke`
+Run: `pnpm test -- smoke`
 Expected: FAIL — cannot resolve `src/core/types`.
 
 - [ ] **Step 3: Scaffold the project**
 
 ```bash
-npm init -y
-npm i react react-dom phaser
-npm i -D typescript vite @vitejs/plugin-react vitest jsdom \
+pnpm init
+pnpm add react react-dom phaser
+pnpm add -D typescript vite @vitejs/plugin-react vitest jsdom \
         @types/react @types/react-dom @playwright/test \
         tailwindcss @tailwindcss/vite
 ```
@@ -210,12 +210,12 @@ export default defineConfig({ test: { environment: 'node', include: ['tests/**/*
 
 - [ ] **Step 4: Run the tests and make sure they pass**
 
-Run: `npm test`
+Run: `pnpm test`
 Expected: PASS, 1 test.
 
 - [ ] **Step 5: Verify the dev server boots and the tokens resolve**
 
-Run: `npm run dev`, open the page, and in the console run
+Run: `pnpm dev`, open the page, and in the console run
 `getComputedStyle(document.documentElement).getPropertyValue('--ui-act').trim()`.
 Expected: `#38BDC8`.
 
@@ -290,7 +290,7 @@ describe('seeded rng', () => {
 
 - [ ] **Step 2: Run it to make sure it fails**
 
-Run: `npm test -- rng`
+Run: `pnpm test -- rng`
 Expected: FAIL — cannot resolve `src/core/rng`.
 
 - [ ] **Step 3: Implement the minimal code to make the tests pass**
@@ -318,7 +318,7 @@ export function nextInt(rng: RngState, maxExclusive: number): number {
 
 - [ ] **Step 4: Run the tests and make sure they pass**
 
-Run: `npm test -- rng`
+Run: `pnpm test -- rng`
 Expected: PASS, 4 tests.
 
 - [ ] **Step 5: Add the ESLint guard that keeps `core/` pure**
@@ -400,7 +400,7 @@ describe('pathAt', () => {
 
 - [ ] **Step 2: Run it to make sure it fails**
 
-Run: `npm test -- path`
+Run: `pnpm test -- path`
 Expected: FAIL — cannot resolve `src/core/path`.
 
 - [ ] **Step 3: Implement the minimal code**
@@ -441,7 +441,7 @@ export function pathAt(path: Path, s: number): Point {
 
 - [ ] **Step 4: Run the tests and make sure they pass**
 
-Run: `npm test -- path`
+Run: `pnpm test -- path`
 Expected: PASS, 8 tests.
 
 - [ ] **Step 5: Commit**
@@ -542,7 +542,7 @@ describe('map data', () => {
 
 - [ ] **Step 2: Run it to make sure it fails**
 
-Run: `npm test -- data`
+Run: `pnpm test -- data`
 Expected: FAIL — cannot resolve `src/data/towers`.
 
 - [ ] **Step 3: Write the data files**
@@ -677,7 +677,7 @@ export const M01: MapDef = {
 
 - [ ] **Step 4: Run the tests and make sure they pass**
 
-Run: `npm test -- data`
+Run: `pnpm test -- data`
 Expected: PASS, 7 tests.
 
 - [ ] **Step 5: Commit**
@@ -854,7 +854,7 @@ describe('applyIntent startWave', () => {
 
 - [ ] **Step 2: Run it to make sure it fails**
 
-Run: `npm test -- battle`
+Run: `pnpm test -- battle`
 Expected: FAIL — cannot resolve `src/core/battle`.
 
 - [ ] **Step 3: Implement `economy.ts`, `upgrades.ts`, `battle.ts`**
@@ -881,7 +881,7 @@ export function sellValue(rules: ResolvedRules, towerId: TowerTypeId, level: num
 
 - [ ] **Step 4: Run the tests and make sure they pass**
 
-Run: `npm test -- battle economy`
+Run: `pnpm test -- battle economy`
 Expected: PASS, 14 tests.
 
 - [ ] **Step 5: Commit**
@@ -982,7 +982,7 @@ describe('stepAdvance', () => {
 
 - [ ] **Step 2: Run it to make sure it fails**
 
-Run: `npm test -- advance spawn`
+Run: `pnpm test -- advance spawn`
 Expected: FAIL — cannot resolve `src/core/step/advance`.
 
 - [ ] **Step 3: Implement both steps**
@@ -1012,7 +1012,7 @@ export function stepAdvance(battle: Battle): void {
 
 - [ ] **Step 4: Run the tests and make sure they pass**
 
-Run: `npm test -- advance spawn`
+Run: `pnpm test -- advance spawn`
 Expected: PASS, 12 tests.
 
 - [ ] **Step 5: Commit**
@@ -1071,7 +1071,7 @@ it('still detonates at the last known position when the target dies in flight', 
 
 - [ ] **Step 2: Run it to make sure it fails**
 
-Run: `npm test -- targeting fire projectiles`
+Run: `pnpm test -- targeting fire projectiles`
 Expected: FAIL — cannot resolve the three modules.
 
 - [ ] **Step 3: Implement the three modules**
@@ -1089,7 +1089,7 @@ export function effectiveDamage(damage: number, armor: number, pierce: boolean):
 
 - [ ] **Step 4: Run the tests and make sure they pass**
 
-Run: `npm test -- targeting fire projectiles`
+Run: `pnpm test -- targeting fire projectiles`
 Expected: PASS, 13 tests.
 
 - [ ] **Step 5: Commit**
@@ -1178,7 +1178,7 @@ describe('tick order (invariants #1)', () => {
 
 - [ ] **Step 2: Run it to make sure it fails**
 
-Run: `npm test -- step-order cleanup`
+Run: `pnpm test -- step-order cleanup`
 Expected: FAIL — cannot resolve `src/core/step`.
 
 - [ ] **Step 3: Implement `step`**
@@ -1211,12 +1211,12 @@ export function step(battle: Battle): void {
 
 - [ ] **Step 4: Run the whole core suite**
 
-Run: `npm test`
+Run: `pnpm test`
 Expected: PASS, every core test.
 
 - [ ] **Step 5: Verify the guard actually guards**
 
-Temporarily swap `stepAdvance` and `stepFire` in `step()`, run `npm test -- step-order`, and confirm it FAILS. Then put them back and confirm it passes. A guard that cannot fail is not a guard.
+Temporarily swap `stepAdvance` and `stepFire` in `step()`, run `pnpm test -- step-order`, and confirm it FAILS. Then put them back and confirm it passes. A guard that cannot fail is not a guard.
 
 - [ ] **Step 6: Commit**
 
@@ -1299,7 +1299,7 @@ describe('runBattle', () => {
 
 - [ ] **Step 2: Run it to make sure it fails**
 
-Run: `npm test -- balance`
+Run: `pnpm test -- balance`
 Expected: FAIL — cannot resolve `src/core/runBattle`.
 
 - [ ] **Step 3: Implement `runBattle`**
@@ -1330,7 +1330,7 @@ export function runBattle(mapId, layout, upgrades, seed, maxTicks = 200_000): Ba
 
 - [ ] **Step 4: Run the tests and make sure they pass**
 
-Run: `npm test -- balance`
+Run: `pnpm test -- balance`
 Expected: PASS. **If `maps-are-beatable` fails, tune the numbers in `src/data/`, never the assertion.** That is what the test is for.
 
 - [ ] **Step 5: Commit**
@@ -1398,11 +1398,11 @@ describe('snapshot store', () => {
 
 - [ ] **Step 2: Run it to make sure it fails**
 
-Run: `npm test -- bridge` · Expected: FAIL.
+Run: `pnpm test -- bridge` · Expected: FAIL.
 
 - [ ] **Step 3: Implement the bridge** — a module-level array plus a `Set` of listeners. No React, no Phaser (`architecture.md` §3).
 
-- [ ] **Step 4: Run the tests** · Run: `npm test -- bridge` · Expected: PASS, 3 tests.
+- [ ] **Step 4: Run the tests** · Run: `pnpm test -- bridge` · Expected: PASS, 3 tests.
 
 - [ ] **Step 5: Commit**
 
@@ -1473,7 +1473,7 @@ Tap a slot → `pushIntent` is **not** called; the scene sets local selection an
 
 - [ ] **Step 6: Verify by hand**
 
-Run `npm run dev`, open the page, confirm: enemies walk the path, towers fire, gold and lives change, x2/x3 changes the pace, a hidden tab for 30 seconds does not fast-forward the battle.
+Run `pnpm dev`, open the page, confirm: enemies walk the path, towers fire, gold and lives change, x2/x3 changes the pace, a hidden tab for 30 seconds does not fast-forward the battle.
 
 - [ ] **Step 7: Commit**
 
@@ -1539,7 +1539,7 @@ export function useSnapshot(): BattleSnapshot | null {
 
 - [ ] **Step 5: Verify at 375 by hand, in Vietnamese**
 
-Run `npm run dev`, DevTools at 375×812, and play a wave: select a slot, build, upgrade, sell, change speed, call a wave. Confirm no horizontal scroll and no clipped Vietnamese text.
+Run `pnpm dev`, DevTools at 375×812, and play a wave: select a slot, build, upgrade, sell, change speed, call a wave. Confirm no horizontal scroll and no clipped Vietnamese text.
 
 - [ ] **Step 6: Commit**
 
@@ -1607,7 +1607,7 @@ Refs: FR-14 · FR-15 · US-01"
 
 **Pha 2 ends with a game that is playable but has one map, one language and no saved progress.** That is the right place to stop and actually play it, because `src/data/` is still a first guess (`design.md` §7).
 
-- [ ] **Step 6: Play it. Then tune `src/data/` and re-run `npm test -- balance`.**
+- [ ] **Step 6: Play it. Then tune `src/data/` and re-run `pnpm test -- balance`.**
 
 ---
 
@@ -1679,7 +1679,7 @@ describe('loadProfile never throws and never deletes (NFR-REL-04)', () => {
 
 `vitest.config.ts` gains `environment: 'jsdom'` for `tests/storage/**` via `environmentMatchGlobs`.
 
-- [ ] **Step 2: Run it to make sure it fails** · Run: `npm test -- profile` · Expected: FAIL.
+- [ ] **Step 2: Run it to make sure it fails** · Run: `pnpm test -- profile` · Expected: FAIL.
 - [ ] **Step 3: Implement `loadProfile`/`saveProfile`** — validate every field by type, rename the bad value to `PROFILE_KEY.corrupt.<Date.now()>`, never `delete`.
 - [ ] **Step 4: Run the tests** · Expected: PASS, 8 tests.
 - [ ] **Step 5: Commit**
@@ -1721,7 +1721,7 @@ it('never mutates the base tower table (invariants #6)', () => {
 - [ ] **Step 2: Run it to make sure it fails** · Expected: FAIL.
 - [ ] **Step 3: Implement the tree and the real `applyUpgrades`** — deep-clone `TOWERS` before scaling anything.
 - [ ] **Step 4: Run the tests** · Expected: PASS.
-- [ ] **Step 5: Re-run the balance gate** · Run: `npm test -- balance` · The gate must still pass with the tree in place.
+- [ ] **Step 5: Re-run the balance gate** · Run: `pnpm test -- balance` · The gate must still pass with the tree in place.
 - [ ] **Step 6: Commit**
 
 ```bash
@@ -1767,7 +1767,7 @@ Refs: FR-16 · FR-27 · US-02"
 - [ ] **Step 1: Write the failing unlock test** — `unlockedMaps(profile)` is a **function** of cleared maps and upgrades, never a stored field (ADR-0005 §3). Assert map 1 is always open; map `n+1` opens when map `n` is cleared; a locked map returns a **reason string key**, not just `false` (FR-13).
 - [ ] **Step 2: Run it to make sure it fails** · Expected: FAIL.
 - [ ] **Step 3: Author maps 2-5** — each with `waypoints`, `slots`, waves, and a `referenceLayout`. Add all five ids to `MAP_ORDER`.
-- [ ] **Step 4: Run the balance gate** · Run: `npm test -- balance` · **All five maps must fall to their reference layout at `minUpgradesForMap`.** Tune `src/data/`, never the assertion.
+- [ ] **Step 4: Run the balance gate** · Run: `pnpm test -- balance` · **All five maps must fall to their reference layout at `minUpgradesForMap`.** Tune `src/data/`, never the assertion.
 - [ ] **Step 5: Build `MapSelectScreen`** per `ChonBanDo375/768/1440.dc.html`. A locked card shows the **reason**, and uses grayscale on the thumbnail only — never `opacity` on the card, which drops the text below contrast floor.
 - [ ] **Step 6: Verify US-03 by hand.**
 - [ ] **Step 7: Commit**
@@ -1821,7 +1821,7 @@ Refs: FR-17 · FR-28 · NFR-I18N-01 · NFR-I18N-04 · US-04"
 - [ ] **Step 3: Delete `MASTER.md` §1.3** (the seven placeholder art colours) and the matching `backlog.md` debt row, in the same commit as the last sprite.
 - [ ] **Step 4: Audio** — initialise on the first player gesture, never on load (`design.md` §5). Volumes come from the profile.
 - [ ] **Step 5: `prefers-reduced-motion`** — turn off shell transitions and canvas particles, **keep** sprite animation (NFR-A11Y-05).
-- [ ] **Step 6: Verify** the frame budget still holds: 60 enemies and 20 towers at x1 (NFR-PERF-05), and check the bundle against NFR-PERF-08 with `npm run build`.
+- [ ] **Step 6: Verify** the frame budget still holds: 60 enemies and 20 towers at x1 (NFR-PERF-05), and check the bundle against NFR-PERF-08 with `pnpm build`.
 - [ ] **Step 7: Commit**
 
 ```bash
@@ -1871,7 +1871,7 @@ Refs: FR-29 · NFR-A11Y-02"
 - [ ] **Step 3: `keyboard`** — win a battle with keyboard only (NFR-A11Y-02).
 - [ ] **Step 4: `render-budget`** — instrument a render counter, run 5 seconds of battle, assert ≤ 50 renders (NFR-PERF-07).
 - [ ] **Step 5: `vietnamese-fit`** — set locale to `vi` at 375 and assert no element's `scrollWidth` exceeds its parent's `clientWidth` (NFR-I18N-04).
-- [ ] **Step 6: Run the full suite** · Run: `npm run test:e2e` · Expected: PASS.
+- [ ] **Step 6: Run the full suite** · Run: `pnpm test:e2e` · Expected: PASS.
 - [ ] **Step 7: Commit**
 
 ```bash
@@ -1890,11 +1890,11 @@ Refs: FR-29 · FR-30 · NFR-A11Y-02 · NFR-PERF-07 · NFR-I18N-04"
 - Modify: `docs/02-requirements/scope.md`, `docs/01-product/glossary.md`, `docs/04-state/backlog.md`
 
 - [ ] **Step 1: `README.md`** with a `## Features` section — one short English bullet per user-facing capability, in the house style. This is required in the same branch as any `feat:` that changes user-facing behaviour.
-- [ ] **Step 2: GitHub Pages workflow** — `npm ci`, `GITHUB_PAGES=true npm run build`, publish `dist/`. Verify the deployed page actually loads: a wrong `base` shows up only in production (ADR-0006 §4).
+- [ ] **Step 2: GitHub Pages workflow** — `pnpm install --frozen-lockfile`, `GITHUB_PAGES=true pnpm build`, publish `dist/`. Verify the deployed page actually loads: a wrong `base` shows up only in production (ADR-0006 §4).
 - [ ] **Step 3: Flip every FR in `scope.md`** from `chưa` to `xong` — and only the ones that really are.
 - [ ] **Step 4: Flip `glossary.md` to 🟢** after confirming every code name in it matches the code.
 - [ ] **Step 5: Update `backlog.md`** — clear §Đang làm, and remove the debt rows that this branch actually paid off.
-- [ ] **Step 6: Run everything one last time** · `npm test && npm run test:e2e && npm run build`
+- [ ] **Step 6: Run everything one last time** · `pnpm test && pnpm test:e2e && pnpm build`
 - [ ] **Step 7: Commit**
 
 ```bash
