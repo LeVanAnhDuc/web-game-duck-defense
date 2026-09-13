@@ -12,7 +12,7 @@ coverage/
 playwright-report/
 test-results/
 
-# Cache cua tsc. `npm run typecheck` sinh ra no moi lan chay.
+# Cache cua tsc. `pnpm typecheck` sinh ra no moi lan chay.
 *.tsbuildinfo
 
 # Worktree của feature nằm trong repo (`<repo>/.worktrees/<feature>/`) theo đúng
@@ -29,9 +29,11 @@ test-results/
 !/.claude/scripts/
 !/.claude/agents/
 
-# Repo nay dung npm (package-lock.json). Mot yarn.lock lot vao la hai lockfile
-# trong mot repo: CI cai bang mot cai, nguoi dev cai bang cai kia.
+# Repo nay dung pnpm (pnpm-lock.yaml). Mot yarn.lock hay package-lock.json lot
+# vao la hai lockfile trong mot repo: CI cai bang mot cai, nguoi dev cai bang
+# cai kia.
 yarn.lock
+package-lock.json
 
 # Playwright MCP scratch output (persona runs)
 .playwright-mcp/

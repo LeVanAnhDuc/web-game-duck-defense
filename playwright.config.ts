@@ -21,7 +21,7 @@ export default defineConfig({
   // chạy vào app của dự án khác. Cổng riêng + `strictPort` để nếu đụng thì nó
   // BÁO LỖI thay vì âm thầm nhảy cổng.
   webServer: {
-    command: 'npx vite --port 5273 --strictPort',
+    command: 'pnpm exec vite --port 5273 --strictPort',
     url: 'http://localhost:5273',
     reuseExistingServer: true,
     stdout: 'pipe',
