@@ -21,26 +21,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-      - run: npm ci
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
 
       # Lint chay o day chu khong chi trong ci.yml: `build` bat duoc loi kieu
       # nhung khong bat vi pham lint, va mot push thang vao `main` khong di
       # qua pull request.
-      - run: npm run lint
+      - run: pnpm lint
 
       # Test trước khi build: `ci.yml` chỉ chạy trên pull request, nên một commit
       # đẩy thẳng vào `main` sẽ không đi qua nó.
-      - run: npm test
+      - run: pnpm test
 
       # KHÔNG có biến môi trường nào ở đây. `vite.config.ts` đặt `base: './'`,
       # nên cùng một bản build chạy đúng ở gốc tên miền và dưới đường dẫn con của
       # Pages — đó cũng là lý do `.env.example` nói dự án không đọc biến nào
       # (ADR-0007).
-      - run: npm run build
+      - run: pnpm build
 
       # `enablement` KHÔNG thay thế việc bật Pages một lần cho repo.
       # `GITHUB_TOKEN` không tạo được Pages site — "Resource not accessible by

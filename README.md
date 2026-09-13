@@ -66,18 +66,20 @@ pressing space upgrades the tower — it does not call a wave.
 
 ## Commands
 
-**Requires**: Node.js 22+ and npm. Not Yarn — three projects in this workspace
-use Yarn, and running the wrong installer produces a different dependency tree.
+**Requires**: Node.js 22+ and pnpm 10. Not npm and not Yarn — the lockfile here is
+`pnpm-lock.yaml`, and running a different installer produces a different
+dependency tree. `corepack enable` is enough; the exact version comes from
+`packageManager` in `package.json`.
 
 ```bash
-npm ci             # install exactly what the lockfile says
-npm run dev        # dev server
-npm test           # 231 unit tests, no browser needed
-npm run test:e2e   # 22 browser tests in Chromium
-npm run build      # typecheck, then production build into dist/
-npm run preview    # serve the production build
-npm run lint       # ESLint
-npm run typecheck  # tsc --noEmit
+pnpm install --frozen-lockfile  # install exactly what the lockfile says
+pnpm dev                        # dev server
+pnpm test                       # 231 unit tests, no browser needed
+pnpm test:e2e                   # 22 browser tests in Chromium
+pnpm build                      # typecheck, then production build into dist/
+pnpm preview                    # serve the production build
+pnpm lint                       # ESLint
+pnpm typecheck                  # tsc --noEmit
 ```
 
 There are **no environment variables**. `.env.example` is empty on purpose and
@@ -144,7 +146,7 @@ Three workflows, each with one job to do:
 
 | Workflow | When | What it does |
 | --- | --- | --- |
-| `ci.yml` | every pull request | lint, typecheck, 231 unit tests, build, a hard bundle-size gate, 22 browser tests, and `npm audit` |
+| `ci.yml` | every pull request | lint, typecheck, 231 unit tests, build, a hard bundle-size gate, 22 browser tests, and `pnpm audit` |
 | `deploy.yml` | push to `main` | tests, build, publish to GitHub Pages |
 | `release.yml` | push to `main` | works out the version, verifies again, tags and writes the notes |
 
@@ -169,8 +171,8 @@ What a commit author has to remember:
 Both steps run locally, so neither has to be trusted blind:
 
 ```bash
-yarn release:next     # which tag the next release would get
-yarn release:notes    # what its notes would say
+pnpm release:next     # which tag the next release would get
+pnpm release:notes    # what its notes would say
 ```
 
 **One-time setup per repository:** enable Pages under Settings → Pages → Source →

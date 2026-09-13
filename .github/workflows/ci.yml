@@ -18,24 +18,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
+          cache: pnpm
 
-      # `npm ci`, KHÔNG `npm install`: lockfile là câu trả lời, và workspace này
-      # có ba dự án dùng Yarn — chạy sai lệnh cài đặt cho ra cây phụ thuộc khác.
-      # Xem ADR-0006.
-      - run: npm ci
+      # `pnpm install --frozen-lockfile`, KHÔNG `pnpm install`: lockfile là câu
+      # trả lời, còn `install` trần thì được phép ghi lại nó giữa chừng. ADR-0006
+      # chốt npm; repo đã chuyển sang pnpm bằng `pnpm import` nên mọi version đã
+      # giải vẫn y nguyên, và lý do gốc thì không đổi — chạy sai trình cài đặt
+      # cho ra một cây phụ thuộc khác.
+      - run: pnpm install --frozen-lockfile
 
-      - run: npm run lint
-      - run: npm run typecheck
+      - run: pnpm lint
+      - run: pnpm typecheck
 
       # 231 test, không cần trình duyệt. Trong đó có cổng cân bằng FR-32: nó đỏ
       # ngay khi một con số trong `src/data/` làm một bản đồ thành bất khả thi.
-      - run: npm test
+      - run: pnpm test
 
-      - run: npm run build
+      - run: pnpm build
 
       # NFR-PERF-08 — trần 900 KB gzip cho JS đầu tiên. CHẶN, không chỉ in ra:
       # Phaser chiếm phần lớn ngân sách, nên một lần thêm thư viện vô ý là đủ
@@ -64,15 +68,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npx playwright install --with-deps chromium
-      # 22 test trên Chromium thật. Chúng bắt loại lỗi mà `npm test` không thể:
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      # 22 test trên Chromium thật. Chúng bắt loại lỗi mà `pnpm test` không thể:
       # canvas chặn pointer, snapshot không tới React, chữ tràn ở 375px.
-      - run: npm run test:e2e
+      - run: pnpm test:e2e
 
       - name: Ảnh chụp và trace khi e2e đỏ
         if: failure()
@@ -82,7 +88,7 @@ jobs:
           path: test-results/
           retention-days: 7
 
-  # Job RIÊNG và KHÔNG cài dependency: `npm audit` đọc `package-lock.json` rồi
+  # Job RIÊNG và KHÔNG cài dependency: `pnpm audit` đọc `pnpm-lock.yaml` rồi
   # hỏi registry, nó không cần `node_modules`. Đặt cạnh test thay vì trước test
   # để nó không nằm trên đường tới phản hồi đầu tiên.
   #
@@ -93,24 +99,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      # Có retry, và registry không truy cập được thì KHÔNG phải lỗi. Biến một
-      # kiểm tra bảo mật thành trình chặn merge ngẫu nhiên vì sự cố của người
-      # khác là cách chắc chắn nhất để nó bị vô hiệu hoá bằng `continue-on-error`.
-      # Advisory thật thì vẫn đỏ; sự cố mạng thì báo và cho qua.
-      - name: npm audit (high trở lên)
-        run: |
-          for attempt in 1 2 3; do
-            out=$(npm audit --audit-level=high 2>&1) && { echo "$out"; exit 0; }
-            code=$?
-            if echo "$out" | grep -qiE 'audit endpoint returned an error|Service Unavailable|ENOTFOUND|ETIMEDOUT|ECONNRESET'; then
-              echo "::warning::lần thử $attempt không tới được registry"
-              sleep $((attempt * 15))
-              continue
-            fi
-            echo "$out"
-            exit $code
-          done
-          echo "::warning::npm audit không tới được registry sau 3 lần; không làm đỏ build vì sự cố của người khác"
+      # Registry không truy cập được thì KHÔNG phải lỗi. Biến một kiểm tra bảo
+      # mật thành trình chặn merge ngẫu nhiên vì sự cố của người khác là cách
+      # chắc chắn nhất để nó bị vô hiệu hoá bằng `continue-on-error`. Advisory
+      # thật thì vẫn đỏ; sự cố registry thì in cảnh báo và cho qua.
+      #
+      # `--ignore-registry-errors` là đúng cái vòng retry cũ phải làm bằng tay
+      # (bắt chuỗi lỗi của npm rồi thử lại) — pnpm có sẵn cờ này, nên bỏ được
+      # đoạn grep chuỗi lỗi vốn hỏng ngay khi registry đổi câu chữ.
+      - name: pnpm audit (high trở lên)
+        run: pnpm audit --audit-level=high --ignore-registry-errors

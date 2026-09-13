@@ -1,6 +1,7 @@
 {
   "name": "web-game-tower-defense",
   "private": true,
+  "packageManager": "pnpm@10.32.1",
   "version": "0.1.0",
   "type": "module",
   "description": "Duck Defense - a browser tower defense game. No backend, no accounts, progress stays on the player's machine.",
@@ -16,8 +17,8 @@
     "test:e2e": "playwright test",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "release:next": "npx --yes git-cliff@2.13.1 --bumped-version",
-    "release:notes": "npx --yes git-cliff@2.13.1 --unreleased --tag $(npx --yes git-cliff@2.13.1 --bumped-version) --strip all"
+    "release:next": "pnpm dlx git-cliff@2.13.1 --bumped-version",
+    "release:notes": "pnpm dlx git-cliff@2.13.1 --unreleased --tag $(pnpm dlx git-cliff@2.13.1 --bumped-version) --strip all"
   },
   "dependencies": {
     "phaser": "^3.90.0",

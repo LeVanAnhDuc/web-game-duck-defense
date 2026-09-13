@@ -12,7 +12,7 @@ description: Use when you want to know how a real stranger experiences Duck Defe
   Đây là bản GitHub Actions dựng từ `main` với `GITHUB_PAGES=true`, tức **đúng thứ người
   chơi thật mở**. Persona không bao giờ chạm tới máy của bạn.
 - Bản chạy ở máy — **chỉ dùng khi cần soi một thay đổi chưa deploy**, và khi đó phải ghi
-  rõ trong báo cáo là đã soi bản nào: `npm run dev -- --port 5273 --strictPort` → <http://127.0.0.1:5273/>
+  rõ trong báo cáo là đã soi bản nào: `pnpm dev --port 5273 --strictPort` → <http://127.0.0.1:5273/>
 - Dấu hiệu nhận biết đúng app: tiêu đề trang là **Duck Defense**; một bản đồ có **đường đi của enemy** vẽ sẵn và các ô xây được; có nút gọi đợt tiếp theo và một xưởng nâng cấp mua bằng `cores`
 - Email dùng-một-lần cho persona: không dùng — game này không có đăng ký, không có email
 - Tài khoản thử (nếu Red Route cần đăng nhập): không có — không Red Route nào cần đăng nhập; mọi dữ liệu nằm trong trình duyệt của chính người chơi

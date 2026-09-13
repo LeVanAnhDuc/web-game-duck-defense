@@ -128,12 +128,12 @@ là append-only, nên khi phiên bản nhảy thì chỗ cập nhật là bảng
 | Art | Kenney Tower Defense pack (CC0) | — | ADR-0001 |
 | Ngôn ngữ | TypeScript | **6.0.3** | ADR-0006 |
 | Build | Vite | **8.2.2** | ADR-0006 |
-| Quản lý gói | npm | — | ADR-0006 |
+| Quản lý gói | pnpm | **10.32.1** | ADR-0006 |
 | Test lõi | Vitest | **5.0.0** | ADR-0006 |
 | Test trên trình duyệt | Playwright | **1.63.0** | ADR-0006 |
 | Hosting | GitHub Pages (tĩnh), `base: './'` | — | ADR-0005 · ADR-0007 |
 
 **Hai chỗ lệch khỏi ADR, có chủ ý:** ADR-0002 và ADR-0006 nói "Phaser 3" và
-"Vite 7". Phaser được **ghim lại `^3`** vì npm giải `^4.2.1` mà API Phaser 4 khác
+"Vite 7". Phaser được **ghim lại `^3`** vì `^4.2.1` mới là thứ được giải ra, mà API Phaser 4 khác
 đáng kể; Vite / Vitest / TypeScript thì giải lên cao hơn con số trong ADR. Quyết
 định trong hai ADR đó không đổi.

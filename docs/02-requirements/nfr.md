@@ -48,7 +48,7 @@ truy vấn bị bỏ. Chúng được giữ lại dưới dạng `~~(bỏ)~~` đ
 | NFR-SEC-02 | Không log dữ liệu người chơi. Log chỉ có thông tin kỹ thuật | review format log |
 | ~~NFR-SEC-03~~ | ~~Rate limit endpoint đăng nhập~~ **(bỏ — không có đăng nhập)** | — |
 | NFR-SEC-04 | Không có secret nào trong repo hay trong bundle. Dự án này **không cần secret nào** | grep + review |
-| NFR-SEC-05 | Dependency không có lỗ hổng mức high trở lên | `npm audit --audit-level=high` trong CI |
+| NFR-SEC-05 | Dependency không có lỗ hổng mức high trở lên | `pnpm audit --audit-level=high` trong CI |
 | ~~NFR-SEC-06~~ | ~~Lỗi trả về không chứa stack trace~~ **(bỏ — không có phản hồi server)** | — |
 | NFR-SEC-07 | Dữ liệu đọc từ `localStorage` được coi là **không đáng tin**: kiểm kiểu trước khi dùng, không bao giờ `eval`, không bao giờ dựng DOM từ nó | test với profile bị sửa tay |
 
