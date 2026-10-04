@@ -20,12 +20,46 @@ export default defineConfig({
   // Vite và `CLAUDE.md` ở gốc đã ghi lại một lần đụng cổng làm e2e của dự án này
   // chạy vào app của dự án khác. Cổng riêng + `strictPort` để nếu đụng thì nó
   // BÁO LỖI thay vì âm thầm nhảy cổng.
-  webServer: {
-    command: 'pnpm exec vite --port 5273 --strictPort',
-    url: 'http://localhost:5273',
-    reuseExistingServer: true,
-    stdout: 'pipe',
-    timeout: 120_000,
-  },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  webServer: [
+    {
+      command: 'pnpm exec vite --port 5273 --strictPort',
+      url: 'http://localhost:5273',
+      reuseExistingServer: true,
+      stdout: 'pipe',
+      timeout: 120_000,
+      // Cờ TẮT một cách tường minh: nếu dev có `.env` bật cờ ở máy thì e2e "cờ tắt"
+      // vẫn phải kiểm đúng bản mặc định. Biến trong process.env thắng file `.env`.
+      env: { VITE_FEATURE_DUCKER_SIGN_IN: '' },
+    },
+    // Ducker ID sign-in (ADR-0010): cổng riêng, bật cờ, issuer GIẢ không bao giờ
+    // phân giải — mọi request tới nó bị `page.route` chặn trong
+    // e2e/ducker-sign-in.spec.ts.
+    {
+      command: 'pnpm exec vite --port 5275 --strictPort',
+      url: 'http://localhost:5275',
+      reuseExistingServer: true,
+      stdout: 'pipe',
+      timeout: 120_000,
+      env: {
+        VITE_BASE_PATH: '/',
+        VITE_FEATURE_DUCKER_SIGN_IN: 'true',
+        VITE_DUCKER_ISSUER: 'http://ducker.test',
+        VITE_DUCKER_CLIENT_ID: 'e2e-client',
+        VITE_DUCKER_SCOPE: 'openid profile email',
+        VITE_DUCKER_PROFILE_PATH: '/profile',
+      },
+    },
+  ],
+  projects: [
+    {
+      name: 'chromium',
+      testIgnore: /ducker-sign-in\.spec\.ts/,
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'ducker-sign-in',
+      testMatch: /ducker-sign-in\.spec\.ts/,
+      use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:5275' },
+    },
+  ],
 });
