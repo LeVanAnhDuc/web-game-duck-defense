@@ -33,6 +33,13 @@ function clearPending(): void {
 // Bấm đúp: lần hai sẽ ghi đè verifier của lần một rồi redirect với state cũ → state_mismatch.
 let starting = false;
 
+// Back từ Ducker ID có thể khôi phục trang từ bfcache với `starting` vẫn true.
+if (typeof window !== 'undefined') {
+  window.addEventListener('pageshow', (event) => {
+    if (event.persisted) starting = false;
+  });
+}
+
 /** Dựng URL authorize rồi chuyển cả trang sang Ducker ID. */
 export async function startLogin(config: DuckerConfig): Promise<void> {
   if (starting) return;
@@ -56,10 +63,15 @@ export async function startLogin(config: DuckerConfig): Promise<void> {
   url.searchParams.set('redirect_uri', redirectUri());
   url.searchParams.set('scope', config.scope);
   url.searchParams.set('state', state);
-  url.searchParams.set('code_challenge', await challengeOf(verifier));
+  try {
+    url.searchParams.set('code_challenge', await challengeOf(verifier));
+  } catch (error) {
+    starting = false;
+    throw error;
+  }
   url.searchParams.set('code_challenge_method', 'S256');
   window.location.assign(url.toString());
-  // Không reset: trang đang rời đi. Nếu bfcache đưa về, reload trang sẽ dựng lại module.
+  // Không reset ở đây: trang đang rời đi; `pageshow` persisted lo trường hợp bfcache.
 }
 
 /**

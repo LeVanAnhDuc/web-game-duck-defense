@@ -120,6 +120,17 @@ describe('startLogin', () => {
     expect(assign).toHaveBeenCalledTimes(1);
   });
 
+  it('can start again after a bfcache restore (pageshow persisted)', async () => {
+    await startLogin(config);
+    await startLogin(config);
+    expect(assign).toHaveBeenCalledTimes(1);
+    const event = new Event('pageshow');
+    Object.defineProperty(event, 'persisted', { value: true });
+    window.dispatchEvent(event);
+    await startLogin(config);
+    expect(assign).toHaveBeenCalledTimes(2);
+  });
+
   it('does not redirect when sessionStorage throws', async () => {
     vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
       throw new Error('blocked');

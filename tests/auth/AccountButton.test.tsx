@@ -114,6 +114,17 @@ describe('AccountButton', () => {
     expect(document.activeElement).toBe(out);
   });
 
+  it('focusout with a null relatedTarget keeps the menu open (Safari button click)', () => {
+    auth.value = { ...base, status: 'signed-in', profile: { sub: 'u1', name: 'Đức' } };
+    mount();
+    const trigger = byName('button', 'Tài khoản Ducker ID')!;
+    act(() => trigger.click());
+    act(() => {
+      document.activeElement?.dispatchEvent(new FocusEvent('focusout', { bubbles: true, relatedTarget: null }));
+    });
+    expect(trigger.getAttribute('aria-expanded')).toBe('true');
+  });
+
   it('Tab closes the menu without pulling focus back to the trigger', () => {
     auth.value = { ...base, status: 'signed-in', profile: { sub: 'u1', name: 'Đức' } };
     mount();
