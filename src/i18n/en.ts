@@ -13,6 +13,12 @@ export const en: Record<StringKey, string> = {
   'common.lives': 'Lives',
   'common.settings': 'Settings',
 
+  'account.signIn': 'Sign in',
+  'account.signingIn': 'Signing in…',
+  'account.menuLabel': 'Ducker ID account',
+  'account.openProfile': 'Open Ducker ID profile',
+  'account.signOut': 'Sign out',
+
   'title.play': 'PLAY',
   'title.mapSelect': 'Choose a map',
   'title.workshop': 'Workshop',

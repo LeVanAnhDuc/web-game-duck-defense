@@ -11,7 +11,7 @@ export default defineConfig({
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
   test: {
-    include: ['tests/**/*.test.ts'],
+    include: ['tests/**/*.test.{ts,tsx}'],
     // Mặc định Node cho nhanh. File nào cần localStorage thì tự khai ở đầu file:
     //   // @vitest-environment jsdom
     environment: 'node',

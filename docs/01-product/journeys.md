@@ -127,3 +127,27 @@ trên cùng máy cùng trình duyệt.
   tắt hết, nhưng animation của sprite giữ nguyên vì đó là nội dung game.
 
 **Chức năng liên quan:** FR-17 · FR-18 · FR-19
+
+---
+
+## US-05 · Đăng nhập Ducker ID (tuỳ chọn, đang ship tối)
+
+**Bối cảnh:** Bản build có bật cờ tính năng và cấu hình Ducker ID đầy đủ (hiện chỉ ở
+máy dev; bản Pages chưa bật — ADR-0010). Người chơi muốn game biết mình là ai.
+
+**Các bước:**
+1. Màn tiêu đề có nút "Đăng nhập" cạnh nút VI/EN.
+2. Bấm → chuyển sang Ducker ID, đăng nhập ở đó nếu chưa, rồi quay lại đúng màn tiêu đề.
+3. Nút đổi thành avatar + tên. Mở menu: tên, email, "Mở hồ sơ Ducker ID", "Đăng xuất".
+4. Đăng xuất → nút "Đăng nhập" quay lại. Tải lại trang cũng về trạng thái chưa đăng nhập.
+
+**Kết quả mong đợi:** Chỉ danh tính thay đổi; tiến trình, `cores`, cài đặt y nguyên.
+
+**Điều gì có thể sai:**
+- Cờ tắt hoặc thiếu một biến cấu hình → không nút, không request, game y như cũ.
+- Người chơi từ chối ở Ducker ID, hoặc `state` bị sửa → về chưa đăng nhập, URL sạch,
+  không báo lỗi chặn đường.
+- Mở game ở tab thứ hai khi tab đầu đang giữa chừng đăng nhập → tab hai không có phiên
+  chờ nên `?code` lạ bị bỏ qua, không đổi token.
+
+**Chức năng liên quan:** FR-37

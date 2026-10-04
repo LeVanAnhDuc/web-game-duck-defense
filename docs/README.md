@@ -9,13 +9,21 @@
 | [`01-product/journeys.md`](01-product/journeys.md) | Người dùng đi qua những luồng nào từ đầu đến cuối? | 🟢 đủ | có luồng người dùng mới · một luồng cũ đổi bản chất |
 | [`01-product/glossary.md`](01-product/glossary.md) | Khái niệm này gọi là gì trong code, và hiện ra sao trên UI… | 🟢 đủ | xuất hiện một khái niệm nghiệp vụ mới trong code hoặc UI |
 | [`02-requirements/scope.md`](02-requirements/scope.md) | Hệ thống có những chức năng nào, mỗi cái đang ở trạng thái… | 🟢 đủ | brainstorm ra chức năng mới (cấp FR mới) · một FR chuyển t… |
+| [`02-requirements/nfr.md`](02-requirements/nfr.md) | Ngưỡng nào áp cho **mọi** feature, để không phải nhắc lại … | 🟢 đủ | thêm loại tài nguyên mới · thêm nhóm người dùng · sau sự c… |
 | [`03-design/architecture.md`](03-design/architecture.md) | Hệ thống ghép lại thế nào, ranh giới giữa các phần ở đâu? | 🟢 đủ | thêm/bỏ một module hoặc service · đổi cách hai module nói … |
 | [`03-design/invariants.md`](03-design/invariants.md) | Sửa gì thì hệ thống sai **âm thầm** — test vẫn xanh mà kết… | 🟢 đủ | phát hiện một bất biến mới — thường là ngay sau khi ai đó … |
 | [`04-state/backlog.md`](04-state/backlog.md) | Đang làm gì, tiếp theo làm gì, và đang nợ những gì? | 🟢 đủ | bắt đầu/kết thúc một việc · brainstorm ra việc mới · cố ý … |
-| [`02-requirements/nfr.md`](02-requirements/nfr.md) | Ngưỡng nào áp cho **mọi** feature, để không phải nhắc lại … | 🟢 đủ | thêm loại tài nguyên mới · thêm nhóm người dùng · sau sự c… |
 | [`design-system/tower-defense/MASTER.md`](design-system/tower-defense/MASTER.md) | — | — | — |
-| [`decisions/`](decisions/README.md) | Tại sao lại làm thế này? | 8 ADR | mỗi quyết định kỹ thuật |
-| [`../.env.example`](../.env.example) | cần biến nào để chạy được dự án này? | ⚪ chưa áp dụng — dự án KHÔNG đọc biến môi tr… | code đọc một biến mới (process.env.X / os.getenv / os.Gete… |
+| [`ux-reviews/2026-09-11-persona-run.md`](ux-reviews/2026-09-11-persona-run.md) | — | — | — |
+| [`ux-reviews/2026-09-11-persona-run/logs/p01-RR-01.md`](ux-reviews/2026-09-11-persona-run/logs/p01-RR-01.md) | — | — | — |
+| [`ux-reviews/2026-09-11-persona-run/logs/p02-RR-02.md`](ux-reviews/2026-09-11-persona-run/logs/p02-RR-02.md) | — | — | — |
+| [`ux-reviews/2026-09-11-persona-run/logs/p03-RR-05.md`](ux-reviews/2026-09-11-persona-run/logs/p03-RR-05.md) | — | — | — |
+| [`ux-reviews/2026-09-11-persona-run/logs/p04-RR-03.md`](ux-reviews/2026-09-11-persona-run/logs/p04-RR-03.md) | — | — | — |
+| [`ux-reviews/2026-09-11-persona-run/logs/p05-RR-04.md`](ux-reviews/2026-09-11-persona-run/logs/p05-RR-04.md) | — | — | — |
+| [`ux-reviews/2026-09-11-persona-run/logs/p06-blind.md`](ux-reviews/2026-09-11-persona-run/logs/p06-blind.md) | — | — | — |
+| [`ux-reviews/2026-09-11-persona-run/logs/p07-blind.md`](ux-reviews/2026-09-11-persona-run/logs/p07-blind.md) | — | — | — |
+| [`decisions/`](decisions/README.md) | Tại sao lại làm thế này? | 10 ADR | mỗi quyết định kỹ thuật |
+| [`../.env.example`](../.env.example) | cần biến nào để chạy được dự án này? | 🟢 đủ — 6 biến, đăng nhập Ducker ID tắt nếu … | code đọc một biến mới (import.meta.env.X) |
 <!-- END:auto -->
 
 🔴 chưa điền · 🟡 một phần · 🟢 đủ · ⚪ chưa áp dụng

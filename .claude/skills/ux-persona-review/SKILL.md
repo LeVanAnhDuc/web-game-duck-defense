@@ -9,7 +9,7 @@ description: Use when you want to know how a real stranger experiences Duck Defe
 
 - Thư mục: `D:/DeleteByDuc/web-game/web-game-duck-defense`
 - **Đích của mọi phiên: bản đã deploy** — <https://levananhduc.github.io/web-game-duck-defense/>
-  Đây là bản GitHub Actions dựng từ `main` với `GITHUB_PAGES=true`, tức **đúng thứ người
+  Đây là bản GitHub Actions dựng từ `main` với `VITE_BASE_PATH=/web-game-duck-defense/`, tức **đúng thứ người
   chơi thật mở**. Persona không bao giờ chạm tới máy của bạn.
 - Bản chạy ở máy — **chỉ dùng khi cần soi một thay đổi chưa deploy**, và khi đó phải ghi
   rõ trong báo cáo là đã soi bản nào: `pnpm dev --port 5273 --strictPort` → <http://127.0.0.1:5273/>

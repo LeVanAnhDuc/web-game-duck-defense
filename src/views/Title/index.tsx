@@ -1,6 +1,7 @@
 import { MAP_ORDER, waveCount } from '@/data/maps';
 import type { StringKey } from '@/i18n';
 import { unlockedMaps } from '@/storage/profile';
+import { AccountButton } from '@/components/AccountButton';
 import { IconCore, IconGear, IconMap, IconPlay, IconWrench } from '@/components/Icon';
 import { Press } from '@/components/Press';
 import { Segmented } from '@/components/Segmented';
@@ -37,7 +38,7 @@ export function TitleScreen({ onPlay, onMaps, onWorkshop, onSettings }: Props) {
 
   return (
     <div className="flex h-full flex-col bg-void">
-      <div className="flex flex-none justify-end px-5 pt-4 md:px-10 md:pt-6">
+      <div className="flex flex-none items-center justify-end gap-3 px-5 pt-4 md:px-10 md:pt-6">
         <Segmented<'vi' | 'en'>
           ariaLabel={t('settings.language')}
           value={locale}
@@ -46,8 +47,9 @@ export function TitleScreen({ onPlay, onMaps, onWorkshop, onSettings }: Props) {
             { value: 'vi', label: 'VI', ariaLabel: t('locale.vi') },
             { value: 'en', label: 'EN', ariaLabel: t('locale.en') },
           ]}
-          className="w-[116px]"
+          className="w-[116px] flex-none"
         />
+        <AccountButton />
       </div>
 
       <main className="flex flex-1 flex-col items-center justify-center gap-7 px-5 md:gap-9">

@@ -47,7 +47,7 @@ truy vấn bị bỏ. Chúng được giữ lại dưới dạng `~~(bỏ)~~` đ
 | ~~NFR-SEC-01~~ | ~~Mọi mutation kiểm quyền ở server~~ **(bỏ — không có server; xem Non-Goal "không chống cheat")** | — |
 | NFR-SEC-02 | Không log dữ liệu người chơi. Log chỉ có thông tin kỹ thuật | review format log |
 | ~~NFR-SEC-03~~ | ~~Rate limit endpoint đăng nhập~~ **(bỏ — không có đăng nhập)** | — |
-| NFR-SEC-04 | Không có secret nào trong repo hay trong bundle. Dự án này **không cần secret nào** | grep + review |
+| NFR-SEC-04 | Không có secret nào trong repo hay trong bundle. Dự án này **không cần secret nào** — đăng nhập Ducker ID (ADR-0010) là public client PKCE, không `client_secret`; mọi biến `VITE_*` đều công khai | grep + review |
 | NFR-SEC-05 | Dependency không có lỗ hổng mức high trở lên | `pnpm audit --audit-level=high` trong CI |
 | ~~NFR-SEC-06~~ | ~~Lỗi trả về không chứa stack trace~~ **(bỏ — không có phản hồi server)** | — |
 | NFR-SEC-07 | Dữ liệu đọc từ `localStorage` được coi là **không đáng tin**: kiểm kiểu trước khi dùng, không bao giờ `eval`, không bao giờ dựng DOM từ nó | test với profile bị sửa tay |
@@ -90,7 +90,7 @@ truy vấn bị bỏ. Chúng được giữ lại dưới dạng `~~(bỏ)~~` đ
 | NFR-DATA-01 | Trường nào là PII được liệt kê rõ ở bảng dưới | bảng dưới |
 | ~~NFR-DATA-02~~ | ~~Xoá tài khoản thì xoá toàn bộ PII~~ **(bỏ — không có tài khoản)** | — |
 | ~~NFR-DATA-03~~ | ~~Có đường khôi phục dữ liệu: backup~~ **(bỏ — dữ liệu nằm trong máy người chơi, không có backup)** | — |
-| NFR-DATA-04 | Game **không thu thập gì**: không analytics, không telemetry, không cookie, không gọi mạng nào ngoài asset tĩnh và Google Fonts | kiểm tab Network sau khi chơi một trận đầy đủ |
+| NFR-DATA-04 | Game **không thu thập gì**: không analytics, không telemetry, không cookie, không gọi mạng nào ngoài asset tĩnh và Google Fonts. **Ngoại lệ có giới hạn (ADR-0010):** sessionStorage key `ducker.pkce` và không gì khác, xoá ngay khi quay lại; mạng chỉ tới issuer Ducker ID đã cấu hình, và tới URL ảnh đại diện mà nó trả về (có thể ở host khác), chỉ sau khi đăng nhập; không gì cả khi cờ tắt | kiểm tab Network sau khi chơi một trận đầy đủ (cờ tắt); e2e `ducker-sign-in-off.spec.ts` và `ducker-sign-in.spec.ts` |
 | NFR-DATA-05 | `schemaVersion` có mặt trong profile **từ phiên bản đầu tiên**, kể cả khi chưa có gì để migrate | review code ghi profile |
 
 **Trường PII trong dự án này:**
@@ -99,6 +99,8 @@ truy vấn bị bỏ. Chúng được giữ lại dưới dạng `~~(bỏ)~~` đ
 | --- | --- | --- |
 | _(không có)_ | — | — |
 
-Không có trường PII nào. Profile chỉ chứa tiến trình chơi: `cores`, bậc nâng cấp,
+Không có trường PII nào **trong profile game**. Ngoại lệ ADR-0010: người chơi đăng nhập
+Ducker ID thì tên, email, ảnh của họ được giữ **chỉ trong bộ nhớ** đến khi đăng xuất
+hoặc tải lại trang — không bao giờ ghi `localStorage`. Profile chỉ chứa tiến trình chơi: `cores`, bậc nâng cấp,
 kết quả từng bản đồ, ngôn ngữ, âm lượng. Không có tên, không có email, không có
 định danh thiết bị, không có ID sinh ngẫu nhiên nào để theo dấu.

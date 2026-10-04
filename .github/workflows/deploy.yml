@@ -38,11 +38,16 @@ jobs:
       # đẩy thẳng vào `main` sẽ không đi qua nó.
       - run: pnpm test
 
-      # KHÔNG có biến môi trường nào ở đây. `vite.config.ts` đặt `base: './'`,
-      # nên cùng một bản build chạy đúng ở gốc tên miền và dưới đường dẫn con của
-      # Pages — đó cũng là lý do `.env.example` nói dự án không đọc biến nào
-      # (ADR-0007).
+      # `VITE_BASE_PATH` là biến DUY NHẤT truyền vào bản build (ADR-0010):
+      # redirect_uri của Ducker ID cần một URL tuyệt đối, nên base là
+      # `/<tên repo>/` chứ không còn `'./'`.
+      #
+      # Ducker ID sign-in đang "ship tối": cờ `VITE_FEATURE_DUCKER_SIGN_IN` và các
+      # biến `VITE_DUCKER_*` CỐ Ý không được truyền ở đây, nên bản Pages không hiện
+      # nút đăng nhập (ADR-0010). Bật thật = thêm chúng vào đây.
       - run: pnpm build
+        env:
+          VITE_BASE_PATH: /${{ github.event.repository.name }}/
 
       # `enablement` KHÔNG thay thế việc bật Pages một lần cho repo.
       # `GITHUB_TOKEN` không tạo được Pages site — "Resource not accessible by

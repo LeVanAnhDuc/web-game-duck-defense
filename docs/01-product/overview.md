@@ -46,8 +46,10 @@ Không có nhóm thứ ba. Không có người quản trị, không có người
 
 ## 4. Non-Goals — dứt khoát không làm
 
-- **Không có backend, không có tài khoản.** Không API, không database, không đăng
-  nhập. Tiến trình sống trong `localStorage` của máy người chơi. Đổi máy là mất —
+- **Không có backend, không có tài khoản của game.** Không API, không database, không
+  tài khoản do game sở hữu. **Ngoại lệ có giới hạn (ADR-0010):** đăng nhập Ducker ID
+  tuỳ chọn, chỉ danh tính (tên, email, ảnh hiện ở menu tài khoản), không backend,
+  không đồng bộ tiến trình, ship tối sau một cờ tính năng. Tiến trình sống trong `localStorage` của máy người chơi. Đổi máy là mất —
   chấp nhận, vì backend kéo theo chi phí hạ tầng, xác thực, và quyền riêng tư mà một
   game giải trí đơn không đáng chịu.
 - **Không có bảng xếp hạng online.** Là hệ quả trực tiếp của điều trên. Nghe rất hợp

@@ -155,3 +155,24 @@ export const IconTrophy = ({ size = 20, className, label }: Props) => (
     <path d="M12 14v3M9 20h6" />
   </svg>
 );
+
+export const IconUser = ({ size = 20, className, label }: Props) => (
+  <svg {...base(size, label)} className={className}>
+    <circle cx="12" cy="8" r="3.8" />
+    <path d="M4.5 20.5c.8-4 3.8-6 7.5-6s6.7 2 7.5 6" />
+  </svg>
+);
+
+export const IconLogOut = ({ size = 20, className, label }: Props) => (
+  <svg {...base(size, label)} className={className}>
+    <path d="M9.5 4.5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h3.5" />
+    <path d="M15 8l4 4-4 4M19 12H9.5" />
+  </svg>
+);
+
+export const IconExternalLink = ({ size = 20, className, label }: Props) => (
+  <svg {...base(size, label)} className={className}>
+    <path d="M13 4.5h6.5V11M19.5 4.5L11 13" />
+    <path d="M17.5 14v4a2 2 0 0 1-2 2h-10a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2H10" />
+  </svg>
+);
