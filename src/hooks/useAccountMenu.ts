@@ -16,12 +16,16 @@ export function useAccountMenu() {
 
   useEffect(() => {
     if (!open) return;
+    // Bắt ở pha capture trên window và chặn lan: game nghe phím ở window (bubble), nên
+    // nếu không chặn thì ArrowUp/Esc... vẫn lọt tới phím tắt của game sau lưng menu.
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
+        event.stopPropagation();
         close(true);
         return;
       }
       if (event.key === 'Tab') {
+        event.stopPropagation();
         close(false); // để Tab đi tiếp tự nhiên, không giành lại focus
         return;
       }
@@ -29,6 +33,7 @@ export function useAccountMenu() {
       const items = [...(menuRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [])];
       if (items.length === 0) return;
       event.preventDefault();
+      event.stopPropagation();
       const at = items.indexOf(document.activeElement as HTMLElement);
       let next = 0;
       if (event.key === 'End') next = items.length - 1;
@@ -44,12 +49,12 @@ export function useAccountMenu() {
       const target = event.target as Node;
       if (!menuRef.current?.contains(target) && !triggerRef.current?.contains(target)) close(false);
     };
-    document.addEventListener('keydown', onKey);
+    window.addEventListener('keydown', onKey, true);
     document.addEventListener('pointerdown', onPointer);
     document.addEventListener('focusout', onFocusOut);
     menuRef.current?.querySelector<HTMLElement>('a,button')?.focus();
     return () => {
-      document.removeEventListener('keydown', onKey);
+      window.removeEventListener('keydown', onKey, true);
       document.removeEventListener('pointerdown', onPointer);
       document.removeEventListener('focusout', onFocusOut);
     };

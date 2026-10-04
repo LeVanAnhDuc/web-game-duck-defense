@@ -125,6 +125,27 @@ describe('AccountButton', () => {
     expect(trigger.getAttribute('aria-expanded')).toBe('true');
   });
 
+  it('menu keys never reach a window keydown listener while open, and do after close', () => {
+    auth.value = { ...base, status: 'signed-in', profile: { sub: 'u1', name: 'Đức' } };
+    mount();
+    const seen: string[] = [];
+    const game = (e: KeyboardEvent) => seen.push(e.key);
+    window.addEventListener('keydown', game);
+    const press = (key: string) =>
+      act(() => {
+        document.body.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
+      });
+    const trigger = byName('button', 'Tài khoản Ducker ID')!;
+    act(() => trigger.click());
+    press('ArrowUp');
+    press('Escape');
+    expect(seen).toEqual([]);
+    press('ArrowUp');
+    press('Escape');
+    expect(seen).toEqual(['ArrowUp', 'Escape']);
+    window.removeEventListener('keydown', game);
+  });
+
   it('Tab closes the menu without pulling focus back to the trigger', () => {
     auth.value = { ...base, status: 'signed-in', profile: { sub: 'u1', name: 'Đức' } };
     mount();
