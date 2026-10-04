@@ -1,33 +1,30 @@
 import { fileURLToPath } from 'node:url';
 
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 
-export default defineConfig({
-  // Alias @/ -> src/ (R-13). Phai khai o CA HAI cho: tsconfig cho tsc, cho nay cho
-  // Vite va Vitest — thieu mot ben thi mot trong hai im lang khong hieu duong dan.
-  resolve: {
-    alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
-  },
-  /**
-   * `'./'` — đường dẫn TƯƠNG ĐỐI, không phải một base tuyệt đối theo tên repo.
-   *
-   * Bản đầu dùng `process.env.GITHUB_PAGES` để đặt `base` thành
-   * `/web-game-tower-defense/`. Hai vấn đề, và cả hai đã xảy ra:
-   *
-   *  1. Tên repo là `web-game-duck-defense`, KHÁC tên thư mục local. Một base
-   *     tuyệt đối viết cứng theo tên nào đó là một hằng số phải nhớ cập nhật, và
-   *     sai nó thì local vẫn chạy còn production ra trang trắng.
-   *  2. `vite preview` phục vụ `dist/` ở gốc, nên nó KHÔNG kiểm được một build
-   *     có base là đường dẫn con — phải viết thêm một static server riêng chỉ để
-   *     kiểm một thứ mà `'./'` làm biến mất.
-   *
-   * Với `'./'`, cùng một bản build chạy đúng ở gốc tên miền, dưới đường dẫn con
-   * của Pages, và trong `vite preview`. Base là cấu hình build, không phải biến
-   * môi trường — nên `.env.example` thật sự không có biến nào. Xem ADR-0007.
-   */
-  base: './',
-  plugins: [react(), tailwindcss()],
-  build: { target: 'es2022' },
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '');
+
+  return {
+    // Alias @/ -> src/ (R-13). Phai khai o CA HAI cho: tsconfig cho tsc, cho nay cho
+    // Vite va Vitest — thieu mot ben thi mot trong hai im lang khong hieu duong dan.
+    resolve: {
+      alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
+    },
+    /**
+     * `base` đến từ `VITE_BASE_PATH` — KHÔNG có giá trị dự phòng trong code.
+     * Bỏ trống = gốc tên miền (`/`), đúng cho local, e2e và `vite preview`.
+     * `deploy.yml` đặt nó thành `/<tên repo>/` cho GitHub Pages.
+     *
+     * ADR-0007 từng chọn `'./'` để không phải biết tên repo. ADR-0010 thay nó vì
+     * `redirect_uri` của OAuth phải là một URL TUYỆT ĐỐI khớp từng ký tự với URI
+     * đã đăng ký ở Ducker ID, và `'./'` không cho ra URL nào như thế. Asset của
+     * Phaser nạp qua `import.meta.env.BASE_URL` nên vẫn đúng với base tuyệt đối.
+     */
+    base: env.VITE_BASE_PATH || undefined,
+    plugins: [react(), tailwindcss()],
+    build: { target: 'es2022' },
+  };
 });
