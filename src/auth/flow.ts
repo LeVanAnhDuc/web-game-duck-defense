@@ -66,6 +66,7 @@ export async function startLogin(config: DuckerConfig): Promise<void> {
   try {
     url.searchParams.set('code_challenge', await challengeOf(verifier));
   } catch (error) {
+    clearPending();
     starting = false;
     throw error;
   }

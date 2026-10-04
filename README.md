@@ -4,7 +4,7 @@
 [![Deploy](https://github.com/LeVanAnhDuc/web-game-duck-defense/actions/workflows/deploy.yml/badge.svg)](https://github.com/LeVanAnhDuc/web-game-duck-defense/actions/workflows/deploy.yml)
 [![Release](https://img.shields.io/github/v/release/LeVanAnhDuc/web-game-duck-defense?sort=semver)](https://github.com/LeVanAnhDuc/web-game-duck-defense/releases)
 
-A tower defense game that runs straight in the browser — no install, no account,
+A tower defense game that runs straight in the browser — no install, no game accounts,
 no backend. Progress lives in your own browser and nothing is ever sent anywhere.
 The whole simulation is pure TypeScript with no browser dependency, so a full
 12-wave battle runs headless in under 200ms and the game's balance is enforced by

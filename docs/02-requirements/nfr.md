@@ -90,7 +90,7 @@ truy vấn bị bỏ. Chúng được giữ lại dưới dạng `~~(bỏ)~~` đ
 | NFR-DATA-01 | Trường nào là PII được liệt kê rõ ở bảng dưới | bảng dưới |
 | ~~NFR-DATA-02~~ | ~~Xoá tài khoản thì xoá toàn bộ PII~~ **(bỏ — không có tài khoản)** | — |
 | ~~NFR-DATA-03~~ | ~~Có đường khôi phục dữ liệu: backup~~ **(bỏ — dữ liệu nằm trong máy người chơi, không có backup)** | — |
-| NFR-DATA-04 | Game **không thu thập gì**: không analytics, không telemetry, không cookie, không gọi mạng nào ngoài asset tĩnh và Google Fonts. **Ngoại lệ có giới hạn (ADR-0010):** sessionStorage key `ducker.pkce` và không gì khác, xoá ngay khi quay lại; mạng chỉ tới issuer Ducker ID đã cấu hình, chỉ sau khi người chơi bấm đăng nhập; không gì cả khi cờ tắt | kiểm tab Network sau khi chơi một trận đầy đủ (cờ tắt); e2e `ducker-sign-in-off.spec.ts` và `ducker-sign-in.spec.ts` |
+| NFR-DATA-04 | Game **không thu thập gì**: không analytics, không telemetry, không cookie, không gọi mạng nào ngoài asset tĩnh và Google Fonts. **Ngoại lệ có giới hạn (ADR-0010):** sessionStorage key `ducker.pkce` và không gì khác, xoá ngay khi quay lại; mạng chỉ tới issuer Ducker ID đã cấu hình, và tới URL ảnh đại diện mà nó trả về (có thể ở host khác), chỉ sau khi đăng nhập; không gì cả khi cờ tắt | kiểm tab Network sau khi chơi một trận đầy đủ (cờ tắt); e2e `ducker-sign-in-off.spec.ts` và `ducker-sign-in.spec.ts` |
 | NFR-DATA-05 | `schemaVersion` có mặt trong profile **từ phiên bản đầu tiên**, kể cả khi chưa có gì để migrate | review code ghi profile |
 
 **Trường PII trong dự án này:**

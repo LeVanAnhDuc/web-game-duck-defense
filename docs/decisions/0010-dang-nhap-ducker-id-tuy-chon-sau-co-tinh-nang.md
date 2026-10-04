@@ -41,7 +41,7 @@ code vào `main` nhưng bản GitHub Pages không được hiện nó.
 ### Ngoại lệ có giới hạn của NFR
 
 > sessionStorage key `ducker.pkce` và không gì khác, xoá ngay khi quay lại; mạng chỉ tới
-> issuer đã cấu hình, chỉ sau khi người chơi bấm đăng nhập; không gì cả khi cờ tắt.
+> issuer đã cấu hình, và tới URL ảnh đại diện mà nó trả về (có thể ở host khác), chỉ sau khi đăng nhập; không gì cả khi cờ tắt.
 
 - **NFR-DATA-04** ("không gọi mạng nào ngoài asset tĩnh và Google Fonts"): ngoại lệ trên.
   Kiểm bằng e2e `ducker-sign-in-off.spec.ts` (cờ tắt ⇒ không request ngoài, không
