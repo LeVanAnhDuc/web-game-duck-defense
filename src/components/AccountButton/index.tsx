@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { IconExternalLink, IconLogOut, IconUser } from '@/components/Icon';
 import { Press } from '@/components/Press';
 import { useAccountMenu } from '@/hooks/useAccountMenu';
@@ -29,6 +29,7 @@ export function AccountButton() {
   const { t } = useLocale();
   const signInRef = useRef<HTMLButtonElement>(null);
   const refocusSignIn = useRef(false);
+  const [brokenPicture, setBrokenPicture] = useState<string | null>(null);
 
   // Sau "Đăng xuất" nút mở menu biến mất; đưa focus sang nút đăng nhập cùng chỗ, không để rơi về <body>.
   useEffect(() => {
@@ -46,9 +47,10 @@ export function AccountButton() {
       <Press
         ref={signInRef}
         onClick={auth.signIn}
-        disabled={loading}
+        // `idle` (trước khi store khởi động) cũng khoá: cùng kích thước, không bấm được.
+        disabled={loading || auth.status === 'idle'}
         aria-busy={loading}
-        className="disp flex items-center justify-center gap-2 px-3 text-[length:var(--text-md)] font-bold"
+        className="disp flex flex-none items-center justify-center gap-2 px-3 text-[length:var(--text-md)] font-bold"
       >
         <IconUser size={18} />
         <span>{loading ? t('account.signingIn') : t('account.signIn')}</span>
@@ -60,17 +62,24 @@ export function AccountButton() {
   const label = profile.name?.trim() || profile.email?.trim() || '';
 
   return (
-    <div className="relative">
+    <div className="relative min-w-0">
       <Press
         ref={triggerRef}
         onClick={toggle}
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label={t('account.menuLabel')}
-        className="flex max-w-[190px] items-center gap-2 py-1 pl-1 pr-3"
+        className="flex w-full max-w-[190px] items-center gap-2 py-1 pl-1 pr-3"
       >
-        {profile.picture ? (
-          <img src={profile.picture} alt="" width={32} height={32} className="h-8 w-8 flex-none rounded-full object-cover" />
+        {profile.picture && brokenPicture !== profile.picture ? (
+          <img
+            src={profile.picture}
+            alt=""
+            width={32}
+            height={32}
+            referrerPolicy="no-referrer"
+            onError={() => setBrokenPicture(profile.picture ?? null)}
+            className="h-8 w-8 flex-none rounded-full object-cover" />
         ) : (
           <span
             aria-hidden="true"
@@ -86,9 +95,9 @@ export function AccountButton() {
         <div
           ref={menuRef}
           role="menu"
-          className="absolute right-0 top-full z-20 mt-2 flex w-[260px] flex-col gap-3 rounded-[var(--radius-lg)] border-2 border-edge bg-panel p-3 shadow-[0_4px_0_0_var(--ui-edge)]"
+          className="absolute right-0 top-full z-20 mt-2 flex w-[260px] max-w-[calc(100vw-2.5rem)] flex-col gap-3 rounded-[var(--radius-lg)] border-2 border-edge bg-panel p-3 shadow-[0_4px_0_0_var(--ui-edge)]"
         >
-          <div className="min-w-0 px-1">
+          <div role="none" className="min-w-0 px-1">
             {label && <p className="disp truncate text-[length:var(--text-md)] font-bold text-ink">{label}</p>}
             {profile.name?.trim() && profile.email && (
               <p className="truncate text-[length:var(--text-sm)] text-dim">{profile.email}</p>

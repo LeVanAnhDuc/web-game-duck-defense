@@ -110,3 +110,42 @@ test('375px: the button is at least 44x44 and does not overlap the language swit
   expect(button!.x).toBeGreaterThanOrEqual(language!.x + language!.width);
   expect(button!.x + button!.width).toBeLessThanOrEqual(375);
 });
+
+for (const width of [320, 375]) {
+  for (const locale of ['vi', 'en'] as const) {
+    test(`${width}px ${locale}: top bar does not wrap, language switch stays 44px, menu stays on screen`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 700 });
+      await page.goto('/');
+      if (locale === 'en') await page.getByRole('radio', { name: /English/i }).click();
+      const signIn = page.getByRole('button', { name: locale === 'vi' ? 'Đăng nhập' : 'Sign in' });
+      const language = page.getByRole('radiogroup').first();
+      const bar = language.locator('xpath=..');
+      const barSignedOut = await bar.boundingBox();
+      const lang0 = await language.boundingBox();
+      const signInBox = await signIn.boundingBox();
+      expect(Math.abs(signInBox!.y - lang0!.y)).toBeLessThan(8);
+      expect(signInBox!.x + signInBox!.width).toBeLessThanOrEqual(width);
+
+      await signIn.click();
+      const account = page.getByRole('button', { name: locale === 'vi' ? 'Tài khoản Ducker ID' : 'Ducker ID account' });
+      await expect(account).toBeVisible();
+      const before = await bar.boundingBox();
+      const lang1 = await language.boundingBox();
+      expect(before!.height).toBe(barSignedOut!.height);
+      expect(lang1!.width).toBeGreaterThanOrEqual(44);
+      expect(lang1!.height).toBeGreaterThanOrEqual(44);
+      const acct = await account.boundingBox();
+      expect(acct!.x).toBeGreaterThanOrEqual(lang1!.x + lang1!.width);
+      expect(acct!.x + acct!.width).toBeLessThanOrEqual(width);
+
+      await account.click();
+      const menu = page.getByRole('menu');
+      await expect(menu).toBeVisible();
+      expect(await menu.evaluate((el) => getComputedStyle(el).position)).toBe('absolute');
+      const box = await menu.boundingBox();
+      expect(box!.x).toBeGreaterThanOrEqual(0);
+      expect(box!.x + box!.width).toBeLessThanOrEqual(width);
+      expect(await bar.boundingBox()).toEqual(before);
+    });
+  }
+}

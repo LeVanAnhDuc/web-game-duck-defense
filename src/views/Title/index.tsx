@@ -47,7 +47,7 @@ export function TitleScreen({ onPlay, onMaps, onWorkshop, onSettings }: Props) {
             { value: 'vi', label: 'VI', ariaLabel: t('locale.vi') },
             { value: 'en', label: 'EN', ariaLabel: t('locale.en') },
           ]}
-          className="w-[116px]"
+          className="w-[116px] flex-none"
         />
         <AccountButton />
       </div>
