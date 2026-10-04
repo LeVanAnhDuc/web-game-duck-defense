@@ -1,6 +1,12 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { consumeCallback, startLogin } from '@/auth/flow';
+import {
+  captureCallback,
+  capturedCallback,
+  consumeCallback,
+  resetCaptureForTests,
+  startLogin,
+} from '@/auth/flow';
 
 const config = {
   issuer: 'http://localhost:3000',
@@ -38,10 +44,40 @@ describe('consumeCallback', () => {
     expect(consumeCallback()).toEqual({ error: 'state_mismatch' });
   });
 
+  it('IdP error returns returnTo so the game params come back', () => {
+    sessionStorage.setItem('ducker.pkce', JSON.stringify({ state: 's1', verifier: 'v1', returnTo: '/?level=3' }));
+    window.history.replaceState(null, '', '/?error=access_denied&state=s1');
+    expect(consumeCallback()).toEqual({ error: 'access_denied', returnTo: '/?level=3' });
+  });
+
+  it('drops an unsafe returnTo', () => {
+    sessionStorage.setItem('ducker.pkce', JSON.stringify({ state: 's1', verifier: 'v1', returnTo: '//evil.test/x' }));
+    window.history.replaceState(null, '', '/?code=c1&state=s1');
+    expect(consumeCallback()).toEqual({ code: 'c1', verifier: 'v1', returnTo: undefined });
+  });
+
   it('passes the IdP error through and cleans the URL', () => {
     window.history.replaceState(null, '', '/?error=access_denied&error_description=no&state=s1');
     expect(consumeCallback()).toEqual({ error: 'access_denied' });
     expect(window.location.search).toBe('');
+  });
+});
+
+describe('captureCallback', () => {
+  beforeEach(() => {
+    sessionStorage.clear();
+    resetCaptureForTests();
+  });
+
+  it('restores returnTo once; a second call is a no-op', () => {
+    sessionStorage.setItem('ducker.pkce', JSON.stringify({ state: 's1', verifier: 'v1', returnTo: '/?level=3' }));
+    window.history.replaceState(null, '', '/?code=c1&state=s1');
+    captureCallback();
+    expect(window.location.search).toBe('?level=3');
+    expect(capturedCallback()?.code).toBe('c1');
+    window.history.replaceState(null, '', '/?other=1');
+    captureCallback();
+    expect(window.location.search).toBe('?other=1');
   });
 });
 

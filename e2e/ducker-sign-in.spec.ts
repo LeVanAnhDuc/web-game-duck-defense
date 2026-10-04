@@ -58,7 +58,7 @@ test('signs in, shows the name, keeps the URL clean, signs out', async ({ page }
 
   await account.click();
   await page.getByRole('menuitem', { name: 'Đăng xuất' }).click();
-  await expect(page.getByRole('button', { name: 'Đăng nhập' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Đăng nhập' })).toBeFocused();
   expect(errors).toEqual([]);
 });
 

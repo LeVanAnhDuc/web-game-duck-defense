@@ -4,6 +4,11 @@ import { challengeOf, randomUrlSafeToken } from './pkce';
 
 const CALLBACK_PARAMS = ['code', 'state', 'error', 'error_description', 'iss'];
 
+/** Chỉ nhận đường dẫn nội bộ: bắt đầu bằng "/" và không phải "//" (protocol-relative). */
+export function isSafeReturnTo(value: unknown): value is string {
+  return typeof value === 'string' && value.startsWith('/') && !value.startsWith('//');
+}
+
 export function redirectUri(): string {
   return new URL(appRootPath(), window.location.origin).toString();
 }
@@ -71,9 +76,11 @@ export function consumeCallback(): CallbackResult | null {
     window.location.pathname + (query ? `?${query}` : '') + window.location.hash,
   );
 
-  if (error) return { error };
+  // redirect_uri là gốc app trần, nên lỗi/huỷ cũng phải trả người chơi về chỗ cũ.
+  const returnTo = isSafeReturnTo(pending?.returnTo) ? pending.returnTo : undefined;
+  if (error) return { error, returnTo };
   if (!pending || pending.state !== state) return { error: 'state_mismatch' };
-  return { code: code ?? undefined, verifier: pending.verifier, returnTo: pending.returnTo };
+  return { code: code ?? undefined, verifier: pending.verifier, returnTo };
 }
 
 let captured: CallbackResult | null = null;
@@ -84,7 +91,13 @@ export function captureCallback(): void {
   if (didCapture) return;
   didCapture = true;
   captured = consumeCallback();
-  if (captured?.returnTo) window.history.replaceState(window.history.state, '', captured.returnTo);
+  if (captured?.returnTo) {
+    try {
+      window.history.replaceState(window.history.state, '', captured.returnTo);
+    } catch {
+      // URL không dùng được — giữ URL đã dọn
+    }
+  }
 }
 
 export function capturedCallback(): CallbackResult | null {

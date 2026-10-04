@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { IconExternalLink, IconLogOut, IconUser } from '@/components/Icon';
 import { Press } from '@/components/Press';
 import { useAccountMenu } from '@/hooks/useAccountMenu';
@@ -26,6 +27,16 @@ export function AccountButton() {
   const auth = useDuckerAuth();
   const { open, toggle, close, triggerRef, menuRef } = useAccountMenu();
   const { t } = useLocale();
+  const signInRef = useRef<HTMLButtonElement>(null);
+  const refocusSignIn = useRef(false);
+
+  // Sau "Đăng xuất" nút mở menu biến mất; đưa focus sang nút đăng nhập cùng chỗ, không để rơi về <body>.
+  useEffect(() => {
+    if (refocusSignIn.current && auth.status === 'signed-out') {
+      refocusSignIn.current = false;
+      signInRef.current?.focus();
+    }
+  });
 
   if (!auth.enabled) return null;
 
@@ -33,6 +44,7 @@ export function AccountButton() {
     const loading = auth.status === 'loading';
     return (
       <Press
+        ref={signInRef}
         onClick={auth.signIn}
         disabled={loading}
         aria-busy={loading}
@@ -94,7 +106,8 @@ export function AccountButton() {
           <Press
             role="menuitem"
             onClick={() => {
-              close(true);
+              close(false);
+              refocusSignIn.current = true;
               auth.signOut();
             }}
             className="disp flex w-full items-center gap-2.5 px-3 text-[length:var(--text-md)] font-bold"

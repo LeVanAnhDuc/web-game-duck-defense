@@ -76,6 +76,21 @@ describe('AccountButton', () => {
     expect(base.signOut).toHaveBeenCalledOnce();
   });
 
+  it('after sign out, focus lands on the sign-in button, not <body>', () => {
+    const profile = { sub: 'u1', name: 'Đức', email: 'duc@ducker.id' };
+    auth.value = { ...base, status: 'signed-in', profile };
+    mount();
+    act(() => byName('button', 'Tài khoản Ducker ID')!.click());
+    // Kho thật đổi snapshot khi signOut; mô phỏng bằng cách đổi giá trị rồi render lại.
+    base.signOut.mockImplementationOnce(() => {
+      auth.value = { ...base, status: 'signed-out', profile: null };
+    });
+    act(() => byName('[role="menuitem"]', 'Đăng xuất')!.click());
+    mount();
+    expect(document.activeElement).toBe(byName('button', 'Đăng nhập'));
+    expect(document.activeElement).not.toBe(document.body);
+  });
+
   it('closes on an outside pointer press without stealing focus', () => {
     auth.value = { ...base, status: 'signed-in', profile: { sub: 'u1', email: 'zed@x.vn' } };
     mount();
