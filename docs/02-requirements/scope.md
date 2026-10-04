@@ -72,6 +72,7 @@ KHÔNG chứa: cách hiện thực, ngưỡng phi chức năng (-> nfr.md), lý 
 | FR-19 | Tôn trọng `prefers-reduced-motion` — chuyển động của chrome tắt hết qua CSS toàn cục. **Không có hiệu ứng hạt nào trong canvas để giảm**, nên phần đó của yêu cầu là ⚪ chưa áp dụng, không phải chưa làm | US-04 | xong |
 | FR-29 | Điều khiển bằng bàn phím cho toàn bộ thao tác trong trận | US-01 | xong |
 | FR-30 | Bố cục thật ở 375 · 768 · 1024 · 1440, cả hai chiều xoay | US-01 | xong |
+| FR-37 | Đăng nhập Ducker ID tuỳ chọn, chỉ danh tính (nút → avatar + tên + menu tài khoản), ship tối sau cờ `VITE_FEATURE_DUCKER_SIGN_IN` (ADR-0010) | US-05 | xong |
 
 ## Công cụ nội bộ — không phải chức năng người chơi thấy
 

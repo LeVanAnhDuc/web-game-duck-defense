@@ -14,8 +14,10 @@
 | [ADR-0004](0004-cau-noi-y-dinh-xuong-snapshot-len.md) | Cầu nối một chiều: ý định đi xuống, snapshot 10Hz đi lên | 2026-09-08 | accepted |
 | [ADR-0005](0005-profile-trong-localstorage-co-schemaversion.md) | Một profile trong localStorage, một key, có schemaVersion từ ngày đầu | 2026-09-08 | accepted |
 | [ADR-0006](0006-toolchain-npm-vite-vitest-tailwind.md) | npm + Vite + Vitest + Tailwind, deploy tĩnh lên GitHub Pages | 2026-09-08 | accepted |
-| [ADR-0007](0007-base-tuong-doi-thay-cho-base-theo-ten-repo.md) | Dùng `base: './'` thay cho base tuyệt đối theo tên repo | 2026-09-08 | accepted |
+| [ADR-0007](0007-base-tuong-doi-thay-cho-base-theo-ten-repo.md) | Dùng `base: './'` thay cho base tuyệt đối theo tên repo | 2026-09-08 | superseded by ADR-0010 (phần `base`) |
 | [ADR-0008](0008-nhan-bo-quy-uoc-view-dung-chung.md) | Nhận bộ quy ước view dùng chung của workspace `web-game` | 2026-09-11 | accepted |
+| [ADR-0009](0009-xay-thap-ba-buoc-de-xem-truoc-tam-ban.md) | ADR-0009 — Xây tháp thành ba bước, đổi lấy việc thấy tầm bắn trước khi trả tiền | — | — |
+| [ADR-0010](0010-dang-nhap-ducker-id-tuy-chon-sau-co-tinh-nang.md) | Đăng nhập Ducker ID tuỳ chọn, ship tối sau một cờ tính năng | 2026-10-04 | accepted |
 <!-- END:auto -->
 
 Trạng thái: `accepted` · `superseded by ADR-00xx` · `deprecated`

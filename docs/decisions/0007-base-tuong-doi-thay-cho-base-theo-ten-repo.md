@@ -1,7 +1,7 @@
 # ADR-0007 · Dùng `base: './'` thay cho base tuyệt đối theo tên repo
 
 > **Ngày:** 2026-09-08
-> **Trạng thái:** accepted
+> **Trạng thái:** superseded by ADR-0010 (phần `base`)
 > **Liên quan:** ADR-0006 · NFR-REL-03 · NFR-SEC-04 · NFR-DATA-05
 
 ## 1. Bối cảnh

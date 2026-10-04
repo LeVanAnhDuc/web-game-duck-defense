@@ -46,6 +46,8 @@ a test rather than by hope.
   - A save that cannot be read is **kept aside, never deleted**, and you are
     told what happened.
   - If the browser refuses to store anything, the game still plays and says so.
+- **Optional sign-in with Ducker ID** (behind a feature flag, off in the deployed
+  build) — name, avatar and an account menu only; your progress is untouched.
 - **Vietnamese and English**, switched without a reload.
 
 ## Controls
@@ -74,16 +76,22 @@ dependency tree. `corepack enable` is enough; the exact version comes from
 ```bash
 pnpm install --frozen-lockfile  # install exactly what the lockfile says
 pnpm dev                        # dev server
-pnpm test                       # 231 unit tests, no browser needed
-pnpm test:e2e                   # 22 browser tests in Chromium
+pnpm test                       # unit tests, no browser needed
+pnpm test:e2e                   # browser tests in Chromium (ports 5273, 5275)
 pnpm build                      # typecheck, then production build into dist/
 pnpm preview                    # serve the production build
 pnpm lint                       # ESLint
 pnpm typecheck                  # tsc --noEmit
 ```
 
-There are **no environment variables**. `.env.example` is empty on purpose and
-says why.
+**Environment.** The deployed game needs only `VITE_BASE_PATH`, which
+`deploy.yml` sets. To try Ducker ID sign-in locally, `cp .env.example .env`,
+fill `VITE_DUCKER_CLIENT_ID` and keep `VITE_FEATURE_DUCKER_SIGN_IN=true`; the
+flag and the four `VITE_DUCKER_*` values must all be set, otherwise the feature
+stays off and the game is unchanged. The redirect URI to register is
+`http://localhost:5273/` locally (add that origin to Ducker ID `CORS_ORIGINS`) and
+`https://levananhduc.github.io/web-game-duck-defense/` for Pages — see
+`.env.example`.
 
 ## How it is put together
 
