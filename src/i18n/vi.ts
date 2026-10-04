@@ -20,6 +20,12 @@ export const vi = {
   'common.lives': 'Mạng',
   'common.settings': 'Cài đặt',
 
+  'account.signIn': 'Đăng nhập',
+  'account.signingIn': 'Đang đăng nhập…',
+  'account.menuLabel': 'Tài khoản Ducker ID',
+  'account.openProfile': 'Mở hồ sơ Ducker ID',
+  'account.signOut': 'Đăng xuất',
+
   'title.play': 'CHƠI',
   'title.mapSelect': 'Chọn bản đồ',
   'title.workshop': 'Xưởng nâng cấp',
