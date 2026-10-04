@@ -50,6 +50,12 @@ describe('consumeCallback', () => {
     expect(consumeCallback()).toEqual({ error: 'access_denied', returnTo: '/?level=3' });
   });
 
+  it('drops a returnTo containing a backslash', () => {
+    sessionStorage.setItem('ducker.pkce', JSON.stringify({ state: 's1', verifier: 'v1', returnTo: '/\\evil' }));
+    window.history.replaceState(null, '', '/?code=c1&state=s1');
+    expect(consumeCallback()).toEqual({ code: 'c1', verifier: 'v1', returnTo: undefined });
+  });
+
   it('drops an unsafe returnTo', () => {
     sessionStorage.setItem('ducker.pkce', JSON.stringify({ state: 's1', verifier: 'v1', returnTo: '//evil.test/x' }));
     window.history.replaceState(null, '', '/?code=c1&state=s1');

@@ -6,7 +6,7 @@ const CALLBACK_PARAMS = ['code', 'state', 'error', 'error_description', 'iss'];
 
 /** Chỉ nhận đường dẫn nội bộ: bắt đầu bằng "/" và không phải "//" (protocol-relative). */
 export function isSafeReturnTo(value: unknown): value is string {
-  return typeof value === 'string' && value.startsWith('/') && !value.startsWith('//');
+  return typeof value === 'string' && value.startsWith('/') && !value.startsWith('//') && !value.includes('\\');
 }
 
 export function redirectUri(): string {

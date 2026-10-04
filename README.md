@@ -40,7 +40,7 @@ a test rather than by hope.
   - Battle speed x1, x2 or x3, plus pause. Speed runs more simulation ticks
     rather than scaling time, so the result is identical at any frame rate.
   - Every battle action is reachable by keyboard, and the focus ring is visible.
-- **No sign-in, no server**
+- **No game accounts, no server**
   - Progress goes to `localStorage` under one key. Change browser and it is
     gone — that is the price of the $0 hosting bill, and it is deliberate.
   - A save that cannot be read is **kept aside, never deleted**, and you are
