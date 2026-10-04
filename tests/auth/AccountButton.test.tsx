@@ -91,6 +91,52 @@ describe('AccountButton', () => {
     expect(document.activeElement).not.toBe(document.body);
   });
 
+  it('arrow keys, Home and End move focus between items with wrap-around', () => {
+    auth.value = { ...base, status: 'signed-in', profile: { sub: 'u1', name: 'Đức', email: 'duc@ducker.id' } };
+    mount();
+    act(() => byName('button', 'Tài khoản Ducker ID')!.click());
+    const link = byName('[role="menuitem"]', 'Mở hồ sơ Ducker ID')!;
+    const out = byName('[role="menuitem"]', 'Đăng xuất')!;
+    const press = (key: string) =>
+      act(() => {
+        document.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
+      });
+    expect(document.activeElement).toBe(link);
+    press('ArrowDown');
+    expect(document.activeElement).toBe(out);
+    press('ArrowDown');
+    expect(document.activeElement).toBe(link);
+    press('ArrowUp');
+    expect(document.activeElement).toBe(out);
+    press('Home');
+    expect(document.activeElement).toBe(link);
+    press('End');
+    expect(document.activeElement).toBe(out);
+  });
+
+  it('Tab closes the menu without pulling focus back to the trigger', () => {
+    auth.value = { ...base, status: 'signed-in', profile: { sub: 'u1', name: 'Đức' } };
+    mount();
+    const trigger = byName('button', 'Tài khoản Ducker ID')!;
+    act(() => trigger.click());
+    act(() => {
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+    });
+    expect(trigger.getAttribute('aria-expanded')).toBe('false');
+    expect(document.activeElement).not.toBe(trigger);
+  });
+
+  it('shows the email as the main line when there is no name, and no email line when missing', () => {
+    auth.value = { ...base, status: 'signed-in', profile: { sub: 'u1', email: 'zed@x.vn' } };
+    mount();
+    act(() => byName('button', 'Tài khoản Ducker ID')!.click());
+    const lines = [...host.querySelectorAll('[role="menu"] p')].map((p) => p.textContent);
+    expect(lines).toEqual(['zed@x.vn']);
+    auth.value = { ...base, status: 'signed-in', profile: { sub: 'u1', name: 'Đức' } };
+    mount();
+    expect([...host.querySelectorAll('[role="menu"] p')].map((p) => p.textContent)).toEqual(['Đức']);
+  });
+
   it('closes on an outside pointer press without stealing focus', () => {
     auth.value = { ...base, status: 'signed-in', profile: { sub: 'u1', email: 'zed@x.vn' } };
     mount();

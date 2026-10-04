@@ -84,6 +84,7 @@ describe('captureCallback', () => {
 describe('startLogin', () => {
   const assign = vi.fn();
   beforeEach(() => {
+    resetCaptureForTests();
     sessionStorage.clear();
     assign.mockClear();
     vi.stubGlobal('location', {
@@ -112,6 +113,11 @@ describe('startLogin', () => {
     expect(url.searchParams.get('state')).toBe(pending.state);
     expect(url.searchParams.get('code_challenge_method')).toBe('S256');
     expect(url.searchParams.get('code_challenge')).toMatch(/^[A-Za-z0-9_-]{43}$/);
+  });
+
+  it('two quick calls produce one redirect', async () => {
+    await Promise.all([startLogin(config), startLogin(config)]);
+    expect(assign).toHaveBeenCalledTimes(1);
   });
 
   it('does not redirect when sessionStorage throws', async () => {

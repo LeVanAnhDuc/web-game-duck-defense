@@ -89,8 +89,10 @@ export function AccountButton() {
           className="absolute right-0 top-full z-20 mt-2 flex w-[260px] flex-col gap-3 rounded-[var(--radius-lg)] border-2 border-edge bg-panel p-3 shadow-[0_4px_0_0_var(--ui-edge)]"
         >
           <div className="min-w-0 px-1">
-            {profile.name && <p className="disp truncate text-[length:var(--text-md)] font-bold text-ink">{profile.name}</p>}
-            {profile.email && <p className="truncate text-[length:var(--text-sm)] text-dim">{profile.email}</p>}
+            {label && <p className="disp truncate text-[length:var(--text-md)] font-bold text-ink">{label}</p>}
+            {profile.name?.trim() && profile.email && (
+              <p className="truncate text-[length:var(--text-sm)] text-dim">{profile.email}</p>
+            )}
           </div>
           <a
             role="menuitem"

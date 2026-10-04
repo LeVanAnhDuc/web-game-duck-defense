@@ -23,7 +23,7 @@ export default defineConfig(({ mode }) => {
      * đã đăng ký ở Ducker ID, và `'./'` không cho ra URL nào như thế. Asset của
      * Phaser nạp qua `import.meta.env.BASE_URL` nên vẫn đúng với base tuyệt đối.
      */
-    base: env.VITE_BASE_PATH || undefined,
+    base: env.VITE_BASE_PATH ? env.VITE_BASE_PATH : undefined,
     plugins: [react(), tailwindcss()],
     build: { target: 'es2022' },
   };

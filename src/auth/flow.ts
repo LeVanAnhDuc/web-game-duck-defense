@@ -30,8 +30,13 @@ function clearPending(): void {
   }
 }
 
+// Bấm đúp: lần hai sẽ ghi đè verifier của lần một rồi redirect với state cũ → state_mismatch.
+let starting = false;
+
 /** Dựng URL authorize rồi chuyển cả trang sang Ducker ID. */
 export async function startLogin(config: DuckerConfig): Promise<void> {
+  if (starting) return;
+  starting = true;
   const verifier = randomUrlSafeToken();
   const state = randomUrlSafeToken();
   const pending: PendingAuth = {
@@ -42,6 +47,7 @@ export async function startLogin(config: DuckerConfig): Promise<void> {
   try {
     sessionStorage.setItem(DUCKER_PKCE_KEY, JSON.stringify(pending));
   } catch {
+    starting = false;
     return; // không cất được verifier thì đừng đi, sẽ kẹt ở callback
   }
   const url = new URL('/oauth/authorize', config.issuer);
@@ -53,6 +59,7 @@ export async function startLogin(config: DuckerConfig): Promise<void> {
   url.searchParams.set('code_challenge', await challengeOf(verifier));
   url.searchParams.set('code_challenge_method', 'S256');
   window.location.assign(url.toString());
+  // Không reset: trang đang rời đi. Nếu bfcache đưa về, reload trang sẽ dựng lại module.
 }
 
 /**
@@ -106,6 +113,7 @@ export function capturedCallback(): CallbackResult | null {
 
 /** Chỉ dành cho test. */
 export function resetCaptureForTests(): void {
+  starting = false;
   captured = null;
   didCapture = false;
 }

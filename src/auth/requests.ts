@@ -23,6 +23,7 @@ export async function exchangeCode(
   });
   if (!response.ok) throw new Error(`token_exchange_failed_${response.status}`);
   const data = (await response.json()) as { access_token: string };
+  if (typeof data?.access_token !== 'string' || !data.access_token) throw new Error('token_response_invalid');
   return { accessToken: data.access_token };
 }
 
