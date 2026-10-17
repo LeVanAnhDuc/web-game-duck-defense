@@ -1,4 +1,4 @@
-# I18N — Bug log
+# LANGUAGE — Bug log
 
 ## Đang mở
 

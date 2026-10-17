@@ -30,7 +30,7 @@ Không có — game không có tài khoản. Tiến trình gieo thẳng vào `lo
 
 ## Ngoài phạm vi
 
-- Đổi ngôn ngữ ở màn tiêu đề: module `i18n`. Nút đăng nhập Ducker ID: module `ducker-id`.
+- Đổi ngôn ngữ ở màn tiêu đề: module `language`. Nút đăng nhập Ducker ID: module `ducker-id`.
 - NFR-PERF-09 (≤ 3 giây tới khi bấm được trên 4G mô phỏng): đo bằng Lighthouse, không phải e2e chức năng.
 
 ## Tech debt liên quan

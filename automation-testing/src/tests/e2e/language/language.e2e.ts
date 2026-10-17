@@ -4,7 +4,7 @@ import { M01, VIEWPORTS } from "@/data/test-data";
 
 // FR-17 · US-04 · NFR-I18N-03 · NFR-I18N-04: two languages, switched live, remembered, and neither one overflows.
 
-test("đổi sang English ở màn tiêu đề đổi chữ ngay mà không tải lại trang", { tag: ["@TC-I18N-001", "@smoke"] }, async ({
+test("đổi sang English ở màn tiêu đề đổi chữ ngay mà không tải lại trang", { tag: ["@TC-LANGUAGE-001", "@smoke"] }, async ({
   page,
   titlePage,
 }) => {
@@ -19,7 +19,7 @@ test("đổi sang English ở màn tiêu đề đổi chữ ngay mà không tả
   expect(await page.evaluate(() => (window as unknown as { __sameDocument?: boolean }).__sameDocument)).toBe(true);
 });
 
-test("đổi ngôn ngữ trong cài đặt cũng đổi chữ ngay", { tag: ["@TC-I18N-002"] }, async ({ titlePage, settingsPage }) => {
+test("đổi ngôn ngữ trong cài đặt cũng đổi chữ ngay", { tag: ["@TC-LANGUAGE-002"] }, async ({ titlePage, settingsPage }) => {
   await titlePage.goto();
   await titlePage.openSettings();
   await settingsPage.languageOption("en").click();
@@ -31,7 +31,7 @@ test("đổi ngôn ngữ trong cài đặt cũng đổi chữ ngay", { tag: ["@T
   await expect(titlePage.playButton()).toBeVisible();
 });
 
-test("ngôn ngữ đã chọn còn nguyên sau tải lại", { tag: ["@TC-I18N-003", "@smoke"] }, async ({ titlePage }) => {
+test("ngôn ngữ đã chọn còn nguyên sau tải lại", { tag: ["@TC-LANGUAGE-003", "@smoke"] }, async ({ titlePage }) => {
   await titlePage.goto();
   await titlePage.switchLanguage("en");
   await titlePage.reload();
@@ -40,7 +40,7 @@ test("ngôn ngữ đã chọn còn nguyên sau tải lại", { tag: ["@TC-I18N-0
   expect((await titlePage.storedProfile())?.locale).toBe("en");
 });
 
-test("tiếng Anh phủ màn chọn bản đồ, xưởng và trận", { tag: ["@TC-I18N-004"] }, async ({
+test("tiếng Anh phủ màn chọn bản đồ, xưởng và trận", { tag: ["@TC-LANGUAGE-004"] }, async ({
   page,
   titlePage,
   mapSelectPage,
@@ -77,7 +77,7 @@ test("tiếng Anh phủ màn chọn bản đồ, xưởng và trận", { tag: ["
 for (const locale of ["vi", "en"] as const) {
   test(
     `ở 375px tiếng ${locale === "vi" ? "Việt" : "Anh"} không tràn ngang và không cắt chữ`,
-    { tag: [locale === "vi" ? "@TC-I18N-005" : "@TC-I18N-006"] },
+    { tag: [locale === "vi" ? "@TC-LANGUAGE-005" : "@TC-LANGUAGE-006"] },
     async ({ page, titlePage, mapSelectPage, workshopPage, battlePage }) => {
       await page.setViewportSize(VIEWPORTS.phone);
       await titlePage.goto();
@@ -110,7 +110,7 @@ for (const locale of ["vi", "en"] as const) {
   );
 }
 
-test("nhịp bắn hiện dấu thập phân theo ngôn ngữ", { tag: ["@TC-I18N-007"] }, async ({
+test("nhịp bắn hiện dấu thập phân theo ngôn ngữ", { tag: ["@TC-LANGUAGE-007"] }, async ({
   page,
   titlePage,
   battlePage,

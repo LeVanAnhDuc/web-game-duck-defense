@@ -1,6 +1,6 @@
-# I18N — Quyết định
+# LANGUAGE — Quyết định
 
-Đi cặp với `docs/requirements/i18n.md`.
+Đi cặp với `docs/requirements/language.md`.
 
 ## Nguồn
 
@@ -12,13 +12,13 @@
 - **Code:** `client/src/i18n/{index,vi,en}.ts` (`formatNumber`: vi-VN / en-GB), `client/src/hooks/useLocale.ts` (ngôn ngữ nằm
   trong profile → ghi xuống ngay), `client/src/views/Title/index.tsx` (công tắc VI / EN), `client/src/views/Settings`.
 - **Test đã gom (gợi ý):** `client/e2e/a11y-i18n-perf.spec.ts` "không tràn, không cắt chữ ở locale vi / en tại 375"
-  (→ TC-I18N-005/006; phép đo nhãn bị cắt chuyển vào `BasePage.clippedLabels`, `waitForTimeout` thay bằng chờ tiêu đề màn).
+  (→ TC-LANGUAGE-005/006; phép đo nhãn bị cắt chuyển vào `BasePage.clippedLabels`, `waitForTimeout` thay bằng chờ tiêu đề màn).
 
 ## Quyết định chốt (Chốt bởi agent — user uỷ quyền)
 
 - **Q1** "Không tải lại trang" chứng minh thế nào? → đặt một dấu trên `window` trước khi đổi; sau khi đổi dấu vẫn còn và
   không có điều hướng nào của khung chính.
-- **Q2** NFR-I18N-01 (không hardcode chuỗi) kiểm ở e2e? → phần thấy được: REQ-I18N-03 duyệt các màn chính ở tiếng Anh và
+- **Q2** NFR-I18N-01 (không hardcode chuỗi) kiểm ở e2e? → phần thấy được: REQ-LANGUAGE-03 duyệt các màn chính ở tiếng Anh và
   không thấy chữ tiếng Việt của các nhãn đó. Phần quét mã nguồn là việc của ESLint (`no-restricted-syntax` trong `ui/`)
   và `client/tests/core/i18n.test.ts`.
 - **Q3** Màn kết quả có trong vòng duyệt không tràn? → không: case cũ không có, và tới màn kết quả cần đánh hết một trận;

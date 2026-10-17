@@ -30,7 +30,7 @@ Không có. Tiến trình gieo vào `localStorage`.
 ## Ngoài phạm vi
 
 - Thumbnail bản đồ (SVG vẽ từ waypoint) — trang trí, không phải hành vi.
-- Tràn ngang toàn màn ở các mốc bề rộng: module `responsive`. Hai locale: module `i18n`.
+- Tràn ngang toàn màn ở các mốc bề rộng: module `responsive`. Hai locale: module `language`.
 
 ## Tech debt liên quan
 

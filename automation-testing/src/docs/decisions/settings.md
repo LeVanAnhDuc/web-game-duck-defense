@@ -21,7 +21,7 @@
   không tồn tại là tệ hơn.
 - **Q2** "Phát tiếng" kiểm thế nào khi headless không có loa? → bọc `OscillatorNode.prototype.start` bằng init script để
   đếm số nguồn âm được bật. Mọi tiếng của game là oscillator sinh tại chỗ, nên đếm được đủ.
-- **Q3** Đổi ngôn ngữ trong cài đặt: thuộc module nào? → module `i18n` (TC-I18N-002); module này chỉ kiểm nhóm ngôn ngữ có mặt.
+- **Q3** Đổi ngôn ngữ trong cài đặt: thuộc module nào? → module `language` (TC-LANGUAGE-002); module này chỉ kiểm nhóm ngôn ngữ có mặt.
 
 ## Tài khoản test
 
