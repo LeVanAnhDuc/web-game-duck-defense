@@ -125,6 +125,16 @@ export class BattlePage extends BasePage {
     });
   }
 
+  /** Slot n whatever is on it: empty, built, or the selected tower. */
+  anySlot(n: number): Locator {
+    const empty = this.t("battle.slotLabel", { n });
+    const built = this.t("battle.slotBuilt", { n });
+    const towerSuffix = this.t("battle.towerLabel", { tower: "¤", level: "¤", n }).split("¤").pop()!;
+    return this.page.getByRole("button", {
+      name: new RegExp(`^(${escapeRe(empty)}|${escapeRe(built)})$|${escapeRe(towerSuffix)}$`),
+    });
+  }
+
   /** Every slot button, whatever its state. */
   allSlots(): Locator {
     const slotPrefix = this.t("battle.slotLabel", { n: "§" }).split("§")[0];
