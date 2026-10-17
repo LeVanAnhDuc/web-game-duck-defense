@@ -71,49 +71,65 @@ pressing space upgrades the tower — it does not call a wave.
 **Requires**: Node.js 22+ and pnpm 10. Not npm and not Yarn — the lockfile here is
 `pnpm-lock.yaml`, and running a different installer produces a different
 dependency tree. `corepack enable` is enough; the exact version comes from
-`packageManager` in `package.json`.
+`packageManager` in `client/package.json`.
+
+The game app lives in `client/`; run these from there.
 
 ```bash
+cd client
 pnpm install --frozen-lockfile  # install exactly what the lockfile says
 pnpm dev                        # dev server
 pnpm test                       # unit tests, no browser needed
-pnpm test:e2e                   # browser tests in Chromium (ports 5273, 5275)
-pnpm build                      # typecheck, then production build into dist/
+pnpm build                      # typecheck, then production build into client/dist/
 pnpm preview                    # serve the production build
 pnpm lint                       # ESLint
 pnpm typecheck                  # tsc --noEmit
 ```
 
+The end-to-end regression suite is its own package in `automation-testing/`
+(Playwright): it builds the game, serves the production build, and runs every
+feature against it — including a second build with Ducker ID sign-in switched on
+against a fake issuer.
+
+```bash
+cd automation-testing
+pnpm install && pnpm exec playwright install chromium
+pnpm test             # builds ../client, serves it on :5273 (and :5275), runs the suite
+pnpm coverage:check   # requirement ↔ test case ↔ spec ↔ bug traceability
+```
+
 **Environment.** The deployed game needs only `VITE_BASE_PATH`, which
-`deploy.yml` sets. To try Ducker ID sign-in locally, `cp .env.example .env`,
+`deploy.yml` sets. To try Ducker ID sign-in locally, `cp client/.env.example client/.env`,
 fill `VITE_DUCKER_CLIENT_ID` and keep `VITE_FEATURE_DUCKER_SIGN_IN=true`; the
 flag and the four `VITE_DUCKER_*` values must all be set, otherwise the feature
 stays off and the game is unchanged. The redirect URI to register is
 `http://localhost:5273/` locally (add that origin to Ducker ID `CORS_ORIGINS`) and
 `https://levananhduc.github.io/web-game-duck-defense/` for Pages — see
-`.env.example`.
+`client/.env.example`.
 
 ## How it is put together
 
 ```
-src/core/     pure TypeScript simulation — no Phaser, no React, no DOM
-src/data/     balance tables and map definitions — numbers, no logic
-src/game/     Phaser: draws the battle, reads canvas input, plays audio
-src/ui/       React: every screen, the HUD, the upgrade tree
-src/bridge/   the only place ui/ and game/ talk to each other
-src/storage/  reads and writes the saved profile, defensively
-src/i18n/     vi and en dictionaries
+client/src/core/     pure TypeScript simulation — no Phaser, no React, no DOM
+client/src/data/     balance tables and map definitions — numbers, no logic
+client/src/game/     Phaser: draws the battle, reads canvas input, plays audio
+client/src/views/    React: every screen, the HUD, the upgrade tree
+client/src/bridge/   the only place the views and game/ talk to each other
+client/src/storage/  reads and writes the saved profile, defensively
+client/src/i18n/     vi and en dictionaries
+client/tests/        unit tests (vitest), no browser
+automation-testing/  the end-to-end regression suite (Playwright)
 ```
 
 Three rules carry the design, and the first one carries the other two.
 
-**`src/core/` does not know it is in a browser.** No Phaser, no React, no
+**`client/src/core/` does not know it is in a browser.** No Phaser, no React, no
 `window`, no `localStorage`, and no `Math.random` — every random draw goes
 through a seeded RNG held in the battle state. ESLint enforces this, because
 without a mechanical check the rule holds only until the first person imports
 Phaser into it and nothing goes red. What it buys: a whole battle runs in Node in
 milliseconds, which is what makes the balance gate possible.
-`tests/balance/maps-are-beatable.test.ts` plays every map twice — once with the
+`client/tests/balance/maps-are-beatable.test.ts` plays every map twice — once with the
 reference layout handed over free, and once with a simulated player who may only
 spend the gold it actually earns — and fails if any map cannot be won with no
 upgrades. That second player is the one that matters: it caught map 1, the
@@ -131,7 +147,7 @@ be visible on them.
 
 The things that break *silently* are listed in
 [`docs/03-design/invariants.md`](docs/03-design/invariants.md) — read that before
-changing anything in `src/core/`. The reasoning behind each choice, and the
+changing anything in `client/src/core/`. The reasoning behind each choice, and the
 alternatives that were rejected, is one ADR per decision in
 [`docs/decisions/`](docs/decisions/).
 
@@ -139,7 +155,7 @@ alternatives that were rejected, is one ADR per decision in
 
 Sprites are the [Kenney Tower Defense (top-down)
 pack](https://kenney.nl/assets/tower-defense-top-down), CC0. The licence ships
-alongside them at `public/assets/kenney/License.txt`.
+alongside them at `client/public/assets/kenney/License.txt`.
 
 The road is drawn as vectors rather than with the pack's road tiles, and that is
 a constraint rather than a preference: those tiles are 64px grid pieces, while the

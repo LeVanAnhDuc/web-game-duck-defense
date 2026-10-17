@@ -13,17 +13,26 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# App nằm trong client/; mọi bước `run:` chạy từ đó.
+defaults:
+  run:
+    working-directory: client
+
 jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
+        with:
+          # Không có package.json ở gốc: app nằm trong client/.
+          package_json_file: client/package.json
 
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
+          cache-dependency-path: client/pnpm-lock.yaml
 
       # `pnpm install --frozen-lockfile`, KHÔNG `pnpm install`: lockfile là câu
       # trả lời, còn `install` trần thì được phép ghi lại nó giữa chừng. ADR-0006
@@ -69,11 +78,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
+        with:
+          # Không có package.json ở gốc: app nằm trong client/.
+          package_json_file: client/package.json
 
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
+          cache-dependency-path: client/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
       # 22 test trên Chromium thật. Chúng bắt loại lỗi mà `pnpm test` không thể:
@@ -85,7 +98,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: playwright-results
-          path: test-results/
+          path: client/test-results/
           retention-days: 7
 
   # Job RIÊNG và KHÔNG cài dependency: `pnpm audit` đọc `pnpm-lock.yaml` rồi
@@ -100,6 +113,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: client/package.json
 
       - uses: actions/setup-node@v4
         with:

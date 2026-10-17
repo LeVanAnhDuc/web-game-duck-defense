@@ -23,7 +23,7 @@
 | [`ux-reviews/2026-09-11-persona-run/logs/p06-blind.md`](ux-reviews/2026-09-11-persona-run/logs/p06-blind.md) | — | — | — |
 | [`ux-reviews/2026-09-11-persona-run/logs/p07-blind.md`](ux-reviews/2026-09-11-persona-run/logs/p07-blind.md) | — | — | — |
 | [`decisions/`](decisions/README.md) | Tại sao lại làm thế này? | 10 ADR | mỗi quyết định kỹ thuật |
-| [`../.env.example`](../.env.example) | cần biến nào để chạy được dự án này? | 🟢 đủ — 6 biến, đăng nhập Ducker ID tắt nếu … | code đọc một biến mới (import.meta.env.X) |
+| [`../client/.env.example`](../client/.env.example) | cần biến nào để chạy được dự án này? | 🟢 đủ — 6 biến, đăng nhập Ducker ID tắt nếu … | code đọc một biến mới (import.meta.env.X) |
 <!-- END:auto -->
 
 🔴 chưa điền · 🟡 một phần · 🟢 đủ · ⚪ chưa áp dụng

@@ -16,17 +16,26 @@ concurrency:
   group: pages
   cancel-in-progress: true
 
+# App nằm trong client/; mọi bước `run:` chạy từ đó.
+defaults:
+  run:
+    working-directory: client
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
+        with:
+          # Không có package.json ở gốc: app nằm trong client/.
+          package_json_file: client/package.json
 
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
+          cache-dependency-path: client/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
 
       # Lint chay o day chu khong chi trong ci.yml: `build` bat duoc loi kieu
@@ -58,7 +67,7 @@ jobs:
           enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: client/dist
 
   deploy:
     needs: build
