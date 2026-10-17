@@ -76,6 +76,14 @@ export abstract class BasePage {
     return this.page.getByRole("button", { name: this.t("common.back"), exact: true });
   }
 
+  /** True when the element's whole box lies inside the viewport (1px rounding allowed). */
+  async fullyInViewport(target: Locator): Promise<boolean> {
+    const box = await target.boundingBox();
+    const vp = this.page.viewportSize();
+    if (!box || !vp) return false;
+    return box.x >= -1 && box.y >= -1 && box.x + box.width <= vp.width + 1 && box.y + box.height <= vp.height + 1;
+  }
+
   /** Horizontal overflow of the whole document, in px (0 = no sideways scroll). */
   async horizontalOverflow(): Promise<number> {
     return this.page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);

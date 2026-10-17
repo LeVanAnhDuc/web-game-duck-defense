@@ -105,6 +105,19 @@ export class BattlePage extends BasePage {
     return this.page.locator("canvas");
   }
 
+  /** The canvas box and the board frame it lives in (invariants #12: the canvas must never outgrow its frame). */
+  async canvasFit(): Promise<{ canvas: { w: number; h: number }; frame: { w: number; h: number } } | null> {
+    return this.canvas().evaluate((canvas) => {
+      const frame = canvas.parentElement?.getBoundingClientRect();
+      const box = canvas.getBoundingClientRect();
+      return frame ? { canvas: { w: box.width, h: box.height }, frame: { w: frame.width, h: frame.height } } : null;
+    });
+  }
+
+  speedGroup(): Locator {
+    return this.page.getByRole("radiogroup", { name: this.t("battle.speed") });
+  }
+
   // ── board ───────────────────────────────────────────────────────────────
 
   /** An empty slot, by its 1-based number. */
