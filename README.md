@@ -170,7 +170,7 @@ Three workflows, each with one job to do:
 
 | Workflow | When | What it does |
 | --- | --- | --- |
-| `ci.yml` | every pull request | lint, typecheck, 231 unit tests, build, a hard bundle-size gate, 22 browser tests, and `pnpm audit` |
+| `ci.yml` | every pull request | lint, typecheck, unit tests, build and a hard bundle-size gate in `client/`; the `automation-testing/` regression suite (typecheck, traceability check, every module in Chromium against the production build and the sign-in build); and `pnpm audit` |
 | `deploy.yml` | push to `main` | tests, build, publish to GitHub Pages |
 | `release.yml` | push to `main` | works out the version, verifies again, tags and writes the notes |
 
