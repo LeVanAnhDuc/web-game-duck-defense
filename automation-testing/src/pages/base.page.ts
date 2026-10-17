@@ -53,6 +53,15 @@ export abstract class BasePage {
     return raw === null ? null : (JSON.parse(raw) as Profile);
   }
 
+  /** Values of every `duckdefense.profile.corrupt.<timestamp>` key: saves the game could not read and kept aside. */
+  async corruptProfileCopies(): Promise<string[]> {
+    return this.page.evaluate((prefix) => {
+      return Object.keys(localStorage)
+        .filter((k) => k.startsWith(prefix) && /^\d+$/.test(k.slice(prefix.length)))
+        .map((k) => localStorage.getItem(k) ?? "");
+    }, STORAGE.corruptPrefix);
+  }
+
   /** Every localStorage key the page holds. */
   async storageKeys(): Promise<string[]> {
     return this.page.evaluate(() => Object.keys(localStorage));
