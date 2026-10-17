@@ -5,7 +5,8 @@
 | File | Nội dung |
 |---|---|
 | `copy.ts` | Text UI (`copy`) và message server theo error code (`serverMessage`), chép **nguyên văn** kèm file nguồn |
-| `test-data.ts` | Hằng số và hàm sinh dữ liệu: `randomEmail()`, `WRONG_PASSWORD`… |
+| `test-data.ts` | Hằng số chép từ app kèm nguồn: khoá storage, số liệu bản đồ / tháp / phần thưởng / cây nâng cấp, viewport |
+| `profiles.ts` | Hình dạng profile đã lưu (`Profile`) và hàm dựng profile để gieo vào `localStorage` (`profile()`, `cleared()`) |
 
 ## Quy tắc
 

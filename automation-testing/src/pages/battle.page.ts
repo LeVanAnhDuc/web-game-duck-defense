@@ -281,6 +281,19 @@ export class BattlePage extends BasePage {
 
   // ── long runs (fake clock only) ─────────────────────────────────────────
 
+  /**
+   * Where the battle is, read without waiting: "prep" (the call button is live), "wave" (it is aria-disabled) or
+   * "ended" (no call button: the result screen replaced the battle). A waiting locator call here would hang for the
+   * whole test timeout when the battle ends between two checks.
+   */
+  async phase(): Promise<"prep" | "wave" | "ended"> {
+    const disabled = await this.callWaveButton().evaluateAll((els) =>
+      els.length === 0 ? null : els[0].getAttribute("aria-disabled"),
+    );
+    if (disabled === null) return "ended";
+    return disabled === "true" ? "wave" : "prep";
+  }
+
   /** True once the battle has ended and the result screen replaced it. */
   async ended(): Promise<boolean> {
     return (await this.goldChip().count()) === 0;
@@ -295,8 +308,8 @@ export class BattlePage extends BasePage {
     for (let frame = 1; frame <= maxFrames; frame++) {
       await this.advance(1);
       if (frame % every !== 0) continue;
-      if (await this.ended()) return;
-      if ((await this.callWaveButton().getAttribute("aria-disabled")) === "false") return;
+      const phase = await this.phase();
+      if (phase !== "wave") return;
       if (between) await between();
     }
     throw new Error(`wave still running after ${maxFrames} frames`);
