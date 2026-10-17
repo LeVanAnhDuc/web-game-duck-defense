@@ -91,6 +91,22 @@ export class BattlePage extends BasePage {
     return this.page.getByText(new RegExp(`^${escapeRe(this.t("battle.wave"))} ${n}\\s*/ ${total}$`)).first();
   }
 
+  /** Number of DOM mutation records on the HUD bar (<header>) during `ms` of real time. -1 when there is no header. */
+  async hudMutations(ms: number): Promise<number> {
+    return this.page.evaluate(async (duration) => {
+      const hud = document.querySelector("header");
+      if (!hud) return -1;
+      let count = 0;
+      const observer = new MutationObserver((records) => {
+        count += records.length;
+      });
+      observer.observe(hud, { subtree: true, childList: true, characterData: true });
+      await new Promise((resolve) => setTimeout(resolve, duration));
+      observer.disconnect();
+      return count;
+    }, ms);
+  }
+
   /** The sr-only live region that narrates the battle for screen readers (NFR-A11Y-07). */
   liveRegion(): Locator {
     return this.page.locator('[aria-live="polite"]');
