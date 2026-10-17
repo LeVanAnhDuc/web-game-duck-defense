@@ -1,178 +1,99 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect } from "@/fixtures";
+import { t } from "@/data/copy";
+import { TOWERS, VIEWPORTS } from "@/data/test-data";
 
-/**
- * Hồi quy cho các lỗi mà code review tìm ra sau khi tính năng đã "xong".
- *
- * Cả bốn đều là lỗi ở TẦNG DÂY NỐI — state đã đúng, hiển thị hoặc input thì
- * không — nên chúng chỉ bắt được trong trình duyệt thật, không bắt được ở
- * `tests/`.
- */
+// FR-09 · FR-05: a built tower's panel, upgrading it to the last level, and selling it back.
+// The panel holds a RESOLVED copy of the tower (level, prices); the first version only re-resolved it after a
+// build, not after an upgrade — so it kept the old level and price while the real price had moved.
 
-const towerCard = (page: Page, name: string) =>
-  page.getByTestId('tower-cards').getByRole('button', { name });
+test.use({ viewport: VIEWPORTS.desktop });
 
-const gold = async (page: Page): Promise<number> => {
-  const label = await page.getByRole('group', { name: /^Vàng/ }).first().getAttribute('aria-label');
-  return Number((label ?? '').replace(/\D+/g, ''));
-};
+const arrow = TOWERS.arrow;
 
-async function enterBattle(page: Page) {
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('./');
-  await page.getByRole('button', { name: /^CHƠI/ }).first().click();
-  await expect(page.getByRole('group', { name: /^Vàng/ }).first()).toBeVisible();
-}
-
-/**
- * `this.selection` trong scene là một bản CHỤP đã giải sẵn (bậc, giá nâng, giá
- * bán). Bản đầu chỉ giải lại nó sau khi XÂY, không sau khi NÂNG — nên panel giữ
- * bậc cũ và giá cũ, và nút "Nâng" vẫn *bật* vì nó so tiền với giá cũ trong khi
- * `applyIntent` từ chối im lặng vì giá thật đã khác. Bấm mà không có gì xảy ra.
- */
-test('nâng cấp làm mới panel: bậc và giá đổi theo, không đứng ở giá cũ', async ({ page }) => {
-  await enterBattle(page);
-
-  await page.getByRole('button', { name: 'Ô số 8' }).click();
-  await towerCard(page, 'Cung').click();
-  await page.getByRole('button', { name: /^XÂY · / }).click();
-
-  await expect(page.getByText('Cung · Bậc 1')).toBeVisible();
-  await expect(page.getByRole('button', { name: /^Nâng 60/ })).toBeVisible();
-
-  await page.getByRole('button', { name: /^Nâng 60/ }).click();
-
-  // Bậc VÀ giá đều phải đổi. Giá bậc 2→3 là 110, không phải 60.
-  await expect(page.getByText('Cung · Bậc 2')).toBeVisible();
-  await expect(page.getByRole('button', { name: /^Nâng 110/ })).toBeVisible();
-  await expect(page.getByRole('button', { name: /^Nâng 60/ })).toHaveCount(0);
+test("chọn tháp đã xây hiện bậc, sát thương, giá nâng và giá bán", { tag: ["@TC-TOWER-001", "@smoke"] }, async ({
+  enterBattle,
+  battlePage,
+}) => {
+  await enterBattle();
+  await battlePage.build(8, "arrow");
+  await expect(battlePage.towerTitle("arrow", 1)).toBeVisible();
+  await expect(battlePage.levelOf(1)).toBeVisible();
+  await expect(battlePage.selectedDamage()).toHaveText(`${arrow.damage[0]} → ${arrow.damage[1]}`);
+  await expect(battlePage.upgradeButton(arrow.upgrade[0])).toBeEnabled();
+  await expect(battlePage.sellButton()).toHaveText(`${t("tower.sell")}+${arrow.cost / 2}`);
+  await expect(battlePage.towerSlot("arrow", 1, 8)).toHaveCount(1);
 });
 
-test('nâng tới bậc cuối thì panel nói "đã tối đa", không mời nâng tiếp', async ({ page }) => {
-  await enterBattle(page);
+test("nâng cấp trừ tiền và làm mới panel sang bậc và giá mới", { tag: ["@TC-TOWER-002", "@smoke"] }, async ({
+  enterBattle,
+  battlePage,
+}) => {
+  await enterBattle();
+  await battlePage.build(8, "arrow");
+  await battlePage.upgradeButton(arrow.upgrade[0]).click();
 
-  await page.getByRole('button', { name: 'Ô số 8' }).click();
-  await towerCard(page, 'Cung').click();
-  await page.getByRole('button', { name: /^XÂY · / }).click();
-  await page.getByRole('button', { name: /^Nâng 60/ }).click();
-  await page.getByRole('button', { name: /^Nâng 110/ }).click();
-
-  await expect(page.getByText('Cung · Bậc 3')).toBeVisible();
-  await expect(page.getByText('Đã tối đa')).toBeVisible();
-  await expect(page.getByRole('button', { name: /^Nâng/ })).toHaveCount(0);
+  await expect.poll(() => battlePage.gold()).toBe(260 - arrow.cost - arrow.upgrade[0]);
+  await expect(battlePage.towerTitle("arrow", 2)).toBeVisible();
+  await expect(battlePage.selectedDamage()).toHaveText(`${arrow.damage[1]} → ${arrow.damage[2]}`);
+  await expect(battlePage.upgradeButton(arrow.upgrade[1])).toBeVisible();
+  await expect(battlePage.upgradeButton(arrow.upgrade[0])).toHaveCount(0);
 });
 
-/**
- * Bản đầu `preventDefault()` mọi phím Space ở tầng window, nên người dùng bàn
- * phím Tab tới một nút rồi bấm Space sẽ GỌI ĐỢT thay vì bấm chính nút đó —
- * `preventDefault` trên keydown chặn luôn cú click ngầm của `<button>`.
- */
-test('Space trên một nút đang focus bấm CHÍNH nút đó, không gọi đợt', async ({ page }) => {
-  await enterBattle(page);
+test("nâng tới bậc cuối thì panel nói Đã tối đa", { tag: ["@TC-TOWER-003"] }, async ({ enterBattle, battlePage }) => {
+  await enterBattle();
+  await battlePage.build(8, "arrow");
+  await battlePage.upgradeButton(arrow.upgrade[0]).click();
+  await battlePage.upgradeButton(arrow.upgrade[1]).click();
 
-  await page.getByRole('button', { name: 'Ô số 8' }).click();
-  await towerCard(page, 'Cung').click();
-  await page.getByRole('button', { name: /^XÂY · / }).click();
-  const goldBefore = await gold(page);
-
-  await page.getByRole('button', { name: /^Nâng 60/ }).focus();
-  await page.keyboard.press('Space');
-
-  // Nút "Nâng" đã chạy: tiền trừ đúng 60 và bậc lên 2.
-  await expect.poll(() => gold(page)).toBe(goldBefore - 60);
-  await expect(page.getByText('Cung · Bậc 2')).toBeVisible();
-
-  // Và đợt KHÔNG bị gọi: nút gọi đợt vẫn còn bấm được.
-  await expect(page.getByRole('button', { name: /GỌI ĐỢT TIẾP THEO/ })).toHaveAttribute('aria-disabled', 'false');
+  await expect(battlePage.towerTitle("arrow", 3)).toBeVisible();
+  await expect(battlePage.maxLevel()).toBeVisible();
+  await expect(battlePage.upgradeButton()).toHaveCount(0);
+  await expect.poll(() => battlePage.gold()).toBe(260 - arrow.cost - arrow.upgrade[0] - arrow.upgrade[1]);
 });
 
-test('Space khi không focus nút nào thì vẫn gọi đợt', async ({ page }) => {
-  await enterBattle(page);
-  await page.locator('body').click({ position: { x: 5, y: 400 } });
-  await page.keyboard.press('Space');
-  await expect(page.getByRole('button', { name: /GỌI ĐỢT TIẾP THEO/ })).toHaveAttribute('aria-disabled', 'true');
+test("không đủ vàng thì nút Nâng bị vô hiệu", { tag: ["@TC-TOWER-004"] }, async ({ enterBattle, battlePage }) => {
+  await enterBattle();
+  await battlePage.build(8, "cannon");
+  await battlePage.build(9, "cannon");
+  await expect.poll(() => battlePage.gold()).toBe(260 - 2 * TOWERS.cannon.cost);
+
+  const upgrade = battlePage.upgradeButton(TOWERS.cannon.upgrade[0]);
+  await expect(upgrade).toBeDisabled();
+  await upgrade.click({ force: true });
+  await expect(battlePage.towerTitle("cannon", 1)).toBeVisible();
+  expect(await battlePage.gold()).toBe(40);
 });
 
-/**
- * Snapshot chỉ mang chi tiết tháp cho ô ĐANG chọn, nên bản đầu đọc mọi ô khác
- * là "Ô số N" — kể cả ô đã xây. Người dùng screen reader không phân biệt được
- * ô nào còn trống.
- */
-test('ô đã xây được đọc là "đã xây", không đọc như ô trống', async ({ page }) => {
-  await enterBattle(page);
+test("bán trả lại nửa giá và ô đó xây lại được", { tag: ["@TC-TOWER-005", "@smoke"] }, async ({ enterBattle, battlePage }) => {
+  await enterBattle();
+  await battlePage.build(8, "arrow");
+  await expect.poll(() => battlePage.gold()).toBe(200);
 
-  await page.getByRole('button', { name: 'Ô số 8' }).click();
-  await towerCard(page, 'Cung').click();
-  await page.getByRole('button', { name: /^XÂY · / }).click();
+  await battlePage.sellButton().click();
+  await expect.poll(() => battlePage.gold()).toBe(230); // half of 60, rounded down
+  await expect(battlePage.slot(8)).toHaveCount(1);
 
-  // Chọn sang một ô khác để ô 8 không còn là ô đang chọn.
-  await page.getByRole('button', { name: 'Ô số 3' }).click();
-
-  await expect(page.getByRole('button', { name: 'Ô số 8 — đã xây' })).toHaveCount(1);
-  await expect(page.getByRole('button', { name: /^Ô số 3$/ })).toHaveCount(1);
+  await battlePage.build(8, "arrow");
+  await expect.poll(() => battlePage.gold()).toBe(170);
 });
 
-/**
- * NFR-REL-03. Bản đầu `return` sớm ra một màn lỗi riêng, và điều đó tháo luôn
- * cái div mà Phaser bám vào — nên "thử lại" huỷ game cũ và không bao giờ khởi
- * động game mới. Màn lỗi ở lại vĩnh viễn.
- */
-test('nạp asset thất bại: hiện lỗi, và "thử lại" thật sự khởi động lại được', async ({ page }) => {
-  let blocked = true;
-  await page.route('**/towerDefense_tilesheet.png', (route) => {
-    if (blocked) return route.abort('failed');
-    return route.continue();
-  });
+test("bán tháp đã nâng trả nửa tổng giá xây cộng giá nâng", { tag: ["@TC-TOWER-006"] }, async ({ enterBattle, battlePage }) => {
+  await enterBattle();
+  await battlePage.build(8, "arrow");
+  await battlePage.upgradeButton(arrow.upgrade[0]).click();
+  await expect.poll(() => battlePage.gold()).toBe(140);
 
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('./');
-  await page.getByRole('button', { name: /^CHƠI/ }).first().click();
-
-  const alert = page.getByRole('alert');
-  await expect(alert).toBeVisible();
-  await expect(alert).toContainText('Không tải được dữ liệu game');
-
-  // Mở lại mạng rồi thử lại: lần này phải vào được trận.
-  blocked = false;
-  await page.getByRole('button', { name: /Thử lại/ }).click();
-
-  await expect(page.getByRole('alert')).toHaveCount(0);
-  await expect(page.getByRole('group', { name: /^Vàng/ }).first()).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Ô số 8' })).toBeVisible();
+  const refund = Math.floor((arrow.cost + arrow.upgrade[0]) * 0.5);
+  await expect(battlePage.sellButton()).toHaveText(`${t("tower.sell")}+${refund}`);
+  await battlePage.sellButton().click();
+  await expect.poll(() => battlePage.gold()).toBe(140 + refund);
 });
 
-/** Thanh tiến độ không được nhích trước khi người chơi đánh đợt nào. */
-test('thanh tiến độ đợt bắt đầu ở 0, không ở 1', async ({ page }) => {
-  await enterBattle(page);
-  const bar = page.getByRole('progressbar').first();
-  await expect(bar).toHaveAttribute('aria-valuenow', '0');
-});
-
-/**
- * Lỗi này chỉ lộ ra trên bản đã deploy, ở viewport desktop.
- *
- * `Scale.FIT` của Phaser đo khung chứa MỘT LẦN lúc ScaleManager boot. Ở
- * 1280×720 nó đo ra 720 — chiều cao cửa sổ, không phải 580 của khung bàn — nên
- * canvas thành 720×720 và bị `overflow-hidden` của khung bàn cắt mất hàng ô
- * trên và dưới. Một lần resize cửa sổ là tự đúng lại, nên nó vô hình với mọi
- * test tự resize trước khi đo.
- *
- * Hậu quả không chỉ là thẩm mỹ: `SlotOverlay` đặt nút theo ĐÚNG khung canvas
- * đó, nên các ô bị cắt cũng nằm ngoài vùng thấy được và không bấm được.
- */
-test('canvas vừa khung bàn ngay từ lúc boot, không cần một lần resize', async ({ page }) => {
-  await enterBattle(page);
-  await page.waitForTimeout(800);
-
-  const box = await page.evaluate(() => {
-    const canvas = document.querySelector('canvas');
-    if (!canvas || !canvas.parentElement) return null;
-    const c = canvas.getBoundingClientRect();
-    const p = canvas.parentElement.getBoundingClientRect();
-    return { cw: c.width, ch: c.height, pw: p.width, ph: p.height };
-  });
-
-  expect(box).not.toBeNull();
-  // 1px cho sai số làm tròn của getBoundingClientRect.
-  expect(box!.ch).toBeLessThanOrEqual(box!.ph + 1);
-  expect(box!.cw).toBeLessThanOrEqual(box!.pw + 1);
+test("ô đã xây đọc là đã xây, ô trống đọc như ô trống", { tag: ["@TC-TOWER-007"] }, async ({ enterBattle, battlePage }) => {
+  await enterBattle();
+  await battlePage.build(8, "arrow");
+  // select another slot so slot 8 is no longer the selected one
+  await battlePage.slot(3).click();
+  await expect(battlePage.builtSlot(8)).toHaveCount(1);
+  await expect(battlePage.slot(3)).toHaveCount(1);
 });

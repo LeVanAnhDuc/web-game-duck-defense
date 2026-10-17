@@ -183,6 +183,16 @@ export class BattlePage extends BasePage {
     return this.page.getByText(`${this.t(`tower.${tower}`)} · ${this.t("tower.level", { level })}`, { exact: true });
   }
 
+  /** The selected tower's damage line: "12 → 18" (current → next level), or "27" at the last level. */
+  selectedDamage(): Locator {
+    return this.page.locator("dt", { hasText: this.t("battle.statDamage") }).last().locator("xpath=following-sibling::dd[1]");
+  }
+
+  /** "Bậc 1 / 3" under the selected tower's title. */
+  levelOf(level: number, max = 3): Locator {
+    return this.page.getByText(this.t("tower.levelOf", { level, max }), { exact: true });
+  }
+
   upgradeButton(cost?: number): Locator {
     const word = escapeRe(this.t("tower.upgrade"));
     return this.page.getByRole("button", { name: new RegExp(cost === undefined ? `^${word}` : `^${word} ${cost}$`) });
