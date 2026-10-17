@@ -13,17 +13,26 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# App nằm trong client/; mọi bước `run:` chạy từ đó.
+defaults:
+  run:
+    working-directory: client
+
 jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
+        with:
+          # Không có package.json ở gốc: app nằm trong client/.
+          package_json_file: client/package.json
 
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
+          cache-dependency-path: client/pnpm-lock.yaml
 
       # `pnpm install --frozen-lockfile`, KHÔNG `pnpm install`: lockfile là câu
       # trả lời, còn `install` trần thì được phép ghi lại nó giữa chừng. ADR-0006
@@ -64,28 +73,55 @@ jobs:
   # Job RIÊNG. Playwright phải tải Chromium (~1-2 phút), và nhét nó vào `verify`
   # sẽ đẩy thời gian tới phản hồi đầu tiên lên gấp mấy lần cho mọi pull request —
   # kể cả những PR mà lint đã đủ chặn.
+  #
+  # Bộ hồi quy là package riêng (`automation-testing/`). Nó tự build `client/`
+  # hai lần (cờ đăng nhập tắt, và bật với issuer giả) qua `webServer` rồi phục vụ
+  # bằng `vite preview` — nên job chỉ cần cài dependency của cả hai package.
+  # Chúng bắt loại lỗi mà `pnpm test` không thể: canvas chặn pointer, snapshot
+  # không tới React, chữ tràn ở 375px.
   e2e:
+    name: Regression suite
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
+        with:
+          # Không có package.json ở gốc: app nằm trong client/.
+          package_json_file: client/package.json
 
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: pnpm
+          cache-dependency-path: |
+            client/pnpm-lock.yaml
+            automation-testing/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec playwright install --with-deps chromium
-      # 22 test trên Chromium thật. Chúng bắt loại lỗi mà `pnpm test` không thể:
-      # canvas chặn pointer, snapshot không tới React, chữ tràn ở 375px.
-      - run: pnpm test:e2e
 
-      - name: Ảnh chụp và trace khi e2e đỏ
+      - name: Install the regression suite
+        working-directory: automation-testing
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Chromium
+        working-directory: automation-testing
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Typecheck, unit, traceability
+        working-directory: automation-testing
+        run: pnpm typecheck && pnpm test:unit && pnpm coverage:check
+
+      - name: Regression suite
+        working-directory: automation-testing
+        run: pnpm test
+
+      - name: Báo cáo Playwright khi e2e đỏ
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-results
-          path: test-results/
+          name: playwright-report
+          path: |
+            automation-testing/playwright-report/
+            automation-testing/test-results/
           retention-days: 7
 
   # Job RIÊNG và KHÔNG cài dependency: `pnpm audit` đọc `pnpm-lock.yaml` rồi
@@ -100,6 +136,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: client/package.json
 
       - uses: actions/setup-node@v4
         with:

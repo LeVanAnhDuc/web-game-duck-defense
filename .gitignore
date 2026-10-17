@@ -4,13 +4,20 @@
 .env.*
 !.env.example
 
-# Build và dependency
+# Build và dependency — app nằm ở client/, bộ hồi quy ở automation-testing/.
+# Không neo `/` để pattern khớp ở cả hai thư mục con.
 node_modules/
 dist/
+dist-auth/
 .vite/
 coverage/
+
+# Playwright (automation-testing/ và phiên MCP ở máy)
 playwright-report/
 test-results/
+blob-report/
+playwright/.cache/
+.auth/
 
 # Cache cua tsc. `pnpm typecheck` sinh ra no moi lan chay.
 *.tsbuildinfo
