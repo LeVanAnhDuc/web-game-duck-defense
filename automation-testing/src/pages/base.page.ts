@@ -72,6 +72,28 @@ export abstract class BasePage {
     return this.page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   }
 
+  /**
+   * Visible labels whose text is wider than their box — the player sees the end of the word cut off. Skips what is
+   * hidden on purpose (sr-only is 1px with overflow hidden), scrollers, and text that ellipsises by design.
+   * Returns one line per clipped label; [] means none.
+   */
+  async clippedLabels(): Promise<string[]> {
+    return this.page.evaluate(() => {
+      const bad: string[] = [];
+      for (const el of document.querySelectorAll("button, h1, h2, p, span, dt, dd")) {
+        const e = el as HTMLElement;
+        if (e.offsetWidth <= 4 || e.offsetHeight <= 4) continue;
+        if (e.scrollWidth > e.clientWidth + 1) {
+          const style = getComputedStyle(e);
+          if (style.overflowX === "auto" || style.overflowX === "scroll") continue;
+          if (style.textOverflow === "ellipsis") continue;
+          bad.push(`${e.tagName}: "${(e.textContent ?? "").trim().slice(0, 40)}"`);
+        }
+      }
+      return bad;
+    });
+  }
+
   /** The element that has keyboard focus: its tag and accessible-ish name, or "BODY" when focus fell to <body>. */
   async focused(): Promise<{ tag: string; label: string; text: string }> {
     return this.page.evaluate(() => {

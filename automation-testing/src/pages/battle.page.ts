@@ -220,7 +220,9 @@ export class BattlePage extends BasePage {
 
   /** "GỌI ĐỢT TIẾP THEO" (or "GỌI ĐỢT" in the narrow landscape strip). aria-disabled while a wave runs. */
   callWaveButton(): Locator {
-    return this.page.getByRole("button", { name: new RegExp(`^${escapeRe(this.t("battle.callWaveShort"))}`) }).first();
+    const full = escapeRe(this.t("battle.callWave"));
+    const short = escapeRe(this.t("battle.callWaveShort"));
+    return this.page.getByRole("button", { name: new RegExp(`^(${full}|${short})$`) }).first();
   }
 
   async callWave(): Promise<void> {
