@@ -11,7 +11,7 @@ bật cờ Ducker ID với issuer giả ở :5275 — giờ là bản build prod
 | `client/e2e/review-regressions.spec.ts` | `src/tests/e2e/tower/upgrade-sell.e2e.ts` (git mv) | chưa chuẩn hóa |
 | `client/e2e/a11y-i18n-perf.spec.ts` | `src/tests/e2e/accessibility/keyboard.e2e.ts` (git mv) | chưa chuẩn hóa |
 | `client/e2e/look.spec.ts` | `src/tests/e2e/responsive/layout.e2e.ts` (git mv) | chưa chuẩn hóa |
-| `client/e2e/map-card-narrow.spec.ts` | `src/tests/e2e/map-select/narrow-cards.e2e.ts` (git mv) | chưa chuẩn hóa |
+| `client/e2e/map-card-narrow.spec.ts` | `src/tests/e2e/map-select/map-cards.e2e.ts` (git mv) → TC-MAPSELECT-005; phép đo hình học vào `MapSelectPage.clippedCardText` | đã chuẩn hóa |
 | `client/e2e/ducker-sign-in.spec.ts` | `src/tests/e2e/ducker-id/sign-in.e2e.ts` (git mv) | chưa chuẩn hóa |
 | `client/e2e/ducker-sign-in-off.spec.ts` | `src/tests/e2e/ducker-id/flag-off.e2e.ts` (git mv) | chưa chuẩn hóa |
 | `client/e2e/look-running.spec.ts` | — (xoá) | bỏ: chỉ chụp ảnh trận đang chạy để người xem, không có một assertion nào — không chứng minh được hành vi |
