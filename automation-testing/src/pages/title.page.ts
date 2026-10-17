@@ -76,6 +76,41 @@ export class TitlePage extends BasePage {
     return this.page.locator("footer").getByText(/^\d+$/);
   }
 
+  // ── Ducker ID account (flag-on build only, ADR-0010) ─────────────────────
+
+  /** "Đăng nhập". exact: the in-flight label "Đang đăng nhập…" contains it too. */
+  signInButton(): Locator {
+    return this.page.getByRole("button", { name: this.t("account.signIn"), exact: true });
+  }
+
+  /** The avatar + name button that opens the account menu once signed in. */
+  accountButton(): Locator {
+    return this.page.getByRole("button", { name: this.t("account.menuLabel"), exact: true });
+  }
+
+  accountMenu(): Locator {
+    return this.page.getByRole("menu");
+  }
+
+  profileLink(): Locator {
+    return this.page.getByRole("menuitem", { name: this.t("account.openProfile") });
+  }
+
+  signOutItem(): Locator {
+    return this.page.getByRole("menuitem", { name: this.t("account.signOut") });
+  }
+
+  /** The bar holding the language switch and the account button. */
+  topBar(): Locator {
+    return this.languageSwitch().locator("xpath=..");
+  }
+
+  /** Clicks "Đăng nhập" and waits for the round trip to the issuer and back, until the account button shows. */
+  async signIn(): Promise<void> {
+    await this.signInButton().click();
+    await this.accountButton().waitFor();
+  }
+
   async play(): Promise<void> {
     await this.playButton().click();
   }

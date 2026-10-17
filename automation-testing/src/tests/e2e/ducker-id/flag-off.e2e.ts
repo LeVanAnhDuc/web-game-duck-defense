@@ -1,28 +1,29 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@/fixtures";
+import { STORAGE } from "@/data/test-data";
 
-/**
- * Cờ tắt (bản build mặc định của e2e): không nút, không request ra ngoài, không
- * storage của tính năng, và `?code=` lạ không bị đụng tới (ADR-0010).
- */
+// FR-37 · ADR-0010 · NFR-DATA-04: with the flag off (the default build, and the deployed one) the sign-in feature
+// leaves no trace — no button, no request outside the app, no storage, and a stray ?code= is not touched.
 
-test('no sign-in button and no request outside the app origin', async ({ page, baseURL }) => {
+test("cờ tắt thì không có nút đăng nhập và không request nào ra ngoài", { tag: ["@TC-DUCKERID-001", "@smoke"] }, async ({
+  page,
+  baseURL,
+  titlePage,
+}) => {
+  const origin = new URL(baseURL!).origin;
   const outside: string[] = [];
-  page.on('request', (r) => {
-    // Font Google là chuyện có từ trước, không thuộc tính năng này.
-    if (!r.url().startsWith(baseURL!) && !r.url().startsWith('data:') && !r.url().includes('fonts.g')) {
-      outside.push(r.url());
-    }
+  page.on("request", (r) => {
+    // Google Fonts predates the feature and is allowed by NFR-DATA-04
+    if (!r.url().startsWith(origin) && !r.url().startsWith("data:") && !r.url().includes("fonts.g")) outside.push(r.url());
   });
-  await page.goto('./');
-  await expect(page.getByRole('button', { name: /^CHƠI/ }).first()).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Đăng nhập' })).toHaveCount(0);
-  await expect(page.getByRole('button', { name: 'Tài khoản Ducker ID' })).toHaveCount(0);
+  await titlePage.goto();
+  await expect(titlePage.signInButton()).toHaveCount(0);
+  await expect(titlePage.accountButton()).toHaveCount(0);
   expect(outside).toEqual([]);
-  expect(await page.evaluate(() => sessionStorage.getItem('ducker.pkce'))).toBeNull();
+  expect(await page.evaluate((key) => sessionStorage.getItem(key), STORAGE.pkce)).toBeNull();
 });
 
-test('the auth module leaves the URL alone when the flag is off', async ({ page }) => {
-  await page.goto('./?code=abc&state=xyz');
-  await expect(page.getByRole('button', { name: /^CHƠI/ }).first()).toBeVisible();
-  expect(new URL(page.url()).search).toBe('?code=abc&state=xyz');
+test("cờ tắt thì code và state lạ trên URL được để yên", { tag: ["@TC-DUCKERID-002"] }, async ({ page, titlePage }) => {
+  await titlePage.goto("code=abc&state=xyz");
+  await expect(titlePage.playButton()).toBeVisible();
+  expect(new URL(page.url()).search).toBe("?code=abc&state=xyz");
 });

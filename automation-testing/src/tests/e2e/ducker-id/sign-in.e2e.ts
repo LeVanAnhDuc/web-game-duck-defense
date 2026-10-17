@@ -1,151 +1,134 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@/fixtures";
+import { DUCKER } from "@/data/test-data";
 
-/**
- * Ducker ID sign-in (ADR-0010) với bản build bật cờ + issuer GIẢ `http://ducker.test`.
- * Chạy ở project `ducker-sign-in` (cổng 5275, xem playwright.config.ts). Mọi request
- * tới issuer đều bị `page.route` chặn — nó không bao giờ được phân giải thật.
- */
+// FR-37 · US-05 · ADR-0010: sign-in against the flag-on build (project app-auth, dev only) and a fake issuer
+// (fakeIssuer) that is never resolved for real.
 
-const ISSUER = 'http://ducker.test';
-const CORS = { 'access-control-allow-origin': '*' };
-
-test.beforeEach(async ({ page }) => {
-  await page.route(`${ISSUER}/oauth/authorize**`, async (route) => {
-    const url = new URL(route.request().url());
-    const back = new URL(url.searchParams.get('redirect_uri')!);
-    back.searchParams.set('code', 'code-1');
-    back.searchParams.set('state', url.searchParams.get('state')!);
-    await route.fulfill({ status: 302, headers: { location: back.toString() } });
-  });
-  await page.route(`${ISSUER}/oauth/token`, (route) =>
-    route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      headers: CORS,
-      body: JSON.stringify({ access_token: 'at-1', token_type: 'Bearer', expires_in: 900 }),
-    }),
-  );
-  await page.route(`${ISSUER}/oauth/userinfo`, (route) =>
-    route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      headers: CORS,
-      body: JSON.stringify({ sub: 'u1', name: 'Lê Văn Anh Đức', email: 'duc@ducker.id' }),
-    }),
-  );
+test.beforeEach(async ({ fakeIssuer }) => {
+  await fakeIssuer();
 });
 
-test('signs in, shows the name, keeps the URL clean, signs out', async ({ page }) => {
+test("đăng nhập xong thấy nút tài khoản, URL sạch và không lỗi console", { tag: ["@TC-DUCKERID-003", "@smoke"] }, async ({
+  page,
+  titlePage,
+}) => {
   const errors: string[] = [];
-  page.on('console', (m) => {
-    if (m.type() === 'error') errors.push(m.text());
+  page.on("console", (m) => {
+    if (m.type() === "error") errors.push(m.text());
   });
-  await page.goto('./');
-  await page.getByRole('button', { name: 'Đăng nhập' }).click();
-  const account = page.getByRole('button', { name: 'Tài khoản Ducker ID' });
-  await expect(account).toBeVisible();
+  await titlePage.goto();
+  await titlePage.signIn();
+  await expect(titlePage.accountButton()).toBeVisible();
   expect(new URL(page.url()).search).not.toMatch(/code=|state=/);
-
-  await account.click();
-  await expect(page.getByText('Lê Văn Anh Đức').first()).toBeVisible();
-  await expect(page.getByRole('menuitem', { name: 'Mở hồ sơ Ducker ID' })).toHaveAttribute(
-    'href',
-    `${ISSUER}/profile`,
-  );
-
-  await page.keyboard.press('Escape');
-  await expect(account).toBeFocused();
-
-  await account.click();
-  await page.getByRole('menuitem', { name: 'Đăng xuất' }).click();
-  await expect(page.getByRole('button', { name: 'Đăng nhập' })).toBeFocused();
   expect(errors).toEqual([]);
 });
 
-test('reload while signed in goes back to signed out (nothing persisted)', async ({ page }) => {
-  await page.goto('./');
-  await page.getByRole('button', { name: 'Đăng nhập' }).click();
-  await expect(page.getByRole('button', { name: 'Tài khoản Ducker ID' })).toBeVisible();
-  await page.reload();
-  await expect(page.getByRole('button', { name: 'Đăng nhập' })).toBeVisible();
+test("menu tài khoản hiện tên, hồ sơ, đăng xuất và trả focus đúng chỗ", { tag: ["@TC-DUCKERID-004"] }, async ({
+  page,
+  titlePage,
+}) => {
+  await titlePage.goto();
+  await titlePage.signIn();
+
+  await titlePage.accountButton().click();
+  await expect(titlePage.accountMenu().getByText(DUCKER.user.name).first()).toBeVisible();
+  await expect(titlePage.profileLink()).toHaveAttribute("href", `${DUCKER.issuer}${DUCKER.profilePath}`);
+
+  await page.keyboard.press("Escape");
+  await expect(titlePage.accountButton()).toBeFocused();
+
+  await titlePage.accountButton().click();
+  await titlePage.signOutItem().click();
+  await expect(titlePage.signInButton()).toBeFocused();
 });
 
-test('a tampered state degrades to signed-out and cleans the URL', async ({ page }) => {
-  await page.goto('./?code=stolen&state=evil');
-  await expect(page.getByRole('button', { name: 'Đăng nhập' })).toBeVisible();
-  expect(new URL(page.url()).search).toBe('');
+test("tải lại khi đang đăng nhập thì về chưa đăng nhập", { tag: ["@TC-DUCKERID-005"] }, async ({ titlePage }) => {
+  await titlePage.goto();
+  await titlePage.signIn();
+  await titlePage.reload();
+  await expect(titlePage.signInButton()).toBeVisible();
 });
 
-test('an IdP error degrades to signed-out and cleans the URL', async ({ page }) => {
-  await page.goto('./?error=access_denied&error_description=nope');
-  await expect(page.getByRole('button', { name: 'Đăng nhập' })).toBeVisible();
-  expect(new URL(page.url()).search).toBe('');
+test("state bị sửa thì về chưa đăng nhập và URL sạch", { tag: ["@TC-DUCKERID-006"] }, async ({ page, titlePage }) => {
+  await titlePage.goto("code=stolen&state=evil");
+  await expect(titlePage.signInButton()).toBeVisible();
+  expect(new URL(page.url()).search).toBe("");
 });
 
-test('the game still plays while signed in', async ({ page }) => {
-  await page.goto('./');
-  await page.getByRole('button', { name: 'Đăng nhập' }).click();
-  await expect(page.getByRole('button', { name: 'Tài khoản Ducker ID' })).toBeVisible();
-  await page.getByRole('button', { name: /^CHƠI/ }).first().click();
-  await expect(page.locator('canvas')).toBeVisible();
+test("Ducker ID trả lỗi thì về chưa đăng nhập và URL sạch", { tag: ["@TC-DUCKERID-007"] }, async ({ page, titlePage }) => {
+  await titlePage.goto("error=access_denied&error_description=nope");
+  await expect(titlePage.signInButton()).toBeVisible();
+  expect(new URL(page.url()).search).toBe("");
 });
 
-test('English locale labels', async ({ page }) => {
-  await page.goto('./');
-  await page.getByRole('radio', { name: /English/i }).click();
-  await expect(page.getByRole('button', { name: 'Sign in' })).toBeVisible();
-  await page.getByRole('button', { name: 'Sign in' }).click();
-  await page.getByRole('button', { name: 'Ducker ID account' }).click();
-  await expect(page.getByRole('menuitem', { name: 'Open Ducker ID profile' })).toBeVisible();
-  await expect(page.getByRole('menuitem', { name: 'Sign out' })).toBeVisible();
+test("đã đăng nhập thì game vẫn chơi được", { tag: ["@TC-DUCKERID-008"] }, async ({ titlePage, battlePage }) => {
+  await titlePage.goto();
+  await titlePage.signIn();
+  await titlePage.play();
+  await battlePage.waitReady();
+  await expect(battlePage.canvas()).toBeVisible();
 });
 
-test('375px: the button is at least 44x44 and does not overlap the language switch', async ({ page }) => {
+test("nhãn đăng nhập và menu bằng tiếng Anh", { tag: ["@TC-DUCKERID-009"] }, async ({ titlePage }) => {
+  await titlePage.goto();
+  await titlePage.switchLanguage("en");
+  await expect(titlePage.signInButton()).toBeVisible();
+  await titlePage.signIn();
+  await titlePage.accountButton().click();
+  await expect(titlePage.profileLink()).toBeVisible();
+  await expect(titlePage.signOutItem()).toBeVisible();
+});
+
+test("ở 375px nút đăng nhập rộng ít nhất 44 và không đè công tắc ngôn ngữ", { tag: ["@TC-DUCKERID-010"] }, async ({
+  page,
+  titlePage,
+}) => {
   await page.setViewportSize({ width: 375, height: 700 });
-  await page.goto('./');
-  const button = await page.getByRole('button', { name: 'Đăng nhập' }).boundingBox();
-  const language = await page.getByRole('radiogroup').first().boundingBox();
-  expect(button!.width).toBeGreaterThanOrEqual(44);
-  expect(button!.height).toBeGreaterThanOrEqual(44);
-  expect(button!.x).toBeGreaterThanOrEqual(language!.x + language!.width);
-  expect(button!.x + button!.width).toBeLessThanOrEqual(375);
+  await titlePage.goto();
+  await expect(titlePage.signInButton()).toBeEnabled();
+  const button = (await titlePage.signInButton().boundingBox())!;
+  const language = (await titlePage.languageSwitch().boundingBox())!;
+  expect(button.width).toBeGreaterThanOrEqual(44);
+  expect(button.height).toBeGreaterThanOrEqual(44);
+  expect(button.x).toBeGreaterThanOrEqual(language.x + language.width);
+  expect(button.x + button.width).toBeLessThanOrEqual(375);
 });
 
 for (const width of [320, 375]) {
-  for (const locale of ['vi', 'en'] as const) {
-    test(`${width}px ${locale}: top bar does not wrap, language switch stays 44px, menu stays on screen`, async ({ page }) => {
-      await page.setViewportSize({ width, height: 700 });
-      await page.goto('./');
-      if (locale === 'en') await page.getByRole('radio', { name: /English/i }).click();
-      const signIn = page.getByRole('button', { name: locale === 'vi' ? 'Đăng nhập' : 'Sign in' });
-      const language = page.getByRole('radiogroup').first();
-      const bar = language.locator('xpath=..');
-      const barSignedOut = await bar.boundingBox();
-      const lang0 = await language.boundingBox();
-      const signInBox = await signIn.boundingBox();
-      expect(Math.abs(signInBox!.y - lang0!.y)).toBeLessThan(8);
-      expect(signInBox!.x + signInBox!.width).toBeLessThanOrEqual(width);
+  for (const locale of ["vi", "en"] as const) {
+    test(
+      `ở 320 và 375px thanh trên không xuống dòng và menu nằm trong màn hình — ${width}px ${locale}`,
+      { tag: ["@TC-DUCKERID-011"] },
+      async ({ page, titlePage }) => {
+        await page.setViewportSize({ width, height: 700 });
+        await titlePage.goto();
+        if (locale === "en") await titlePage.switchLanguage("en");
+        await expect(titlePage.signInButton()).toBeEnabled();
 
-      await signIn.click();
-      const account = page.getByRole('button', { name: locale === 'vi' ? 'Tài khoản Ducker ID' : 'Ducker ID account' });
-      await expect(account).toBeVisible();
-      const before = await bar.boundingBox();
-      const lang1 = await language.boundingBox();
-      expect(before!.height).toBe(barSignedOut!.height);
-      expect(lang1!.width).toBeGreaterThanOrEqual(44);
-      expect(lang1!.height).toBeGreaterThanOrEqual(44);
-      const acct = await account.boundingBox();
-      expect(acct!.x).toBeGreaterThanOrEqual(lang1!.x + lang1!.width);
-      expect(acct!.x + acct!.width).toBeLessThanOrEqual(width);
+        const barSignedOut = (await titlePage.topBar().boundingBox())!;
+        const lang0 = (await titlePage.languageSwitch().boundingBox())!;
+        const signIn = (await titlePage.signInButton().boundingBox())!;
+        expect(Math.abs(signIn.y - lang0.y)).toBeLessThan(8);
+        expect(signIn.x + signIn.width).toBeLessThanOrEqual(width);
 
-      await account.click();
-      const menu = page.getByRole('menu');
-      await expect(menu).toBeVisible();
-      expect(await menu.evaluate((el) => getComputedStyle(el).position)).toBe('absolute');
-      const box = await menu.boundingBox();
-      expect(box!.x).toBeGreaterThanOrEqual(0);
-      expect(box!.x + box!.width).toBeLessThanOrEqual(width);
-      expect(await bar.boundingBox()).toEqual(before);
-    });
+        await titlePage.signIn();
+        const before = (await titlePage.topBar().boundingBox())!;
+        const lang1 = (await titlePage.languageSwitch().boundingBox())!;
+        expect(before.height).toBe(barSignedOut.height);
+        expect(lang1.width).toBeGreaterThanOrEqual(44);
+        expect(lang1.height).toBeGreaterThanOrEqual(44);
+        const account = (await titlePage.accountButton().boundingBox())!;
+        expect(account.x).toBeGreaterThanOrEqual(lang1.x + lang1.width);
+        expect(account.x + account.width).toBeLessThanOrEqual(width);
+
+        await titlePage.accountButton().click();
+        await expect(titlePage.accountMenu()).toBeVisible();
+        expect(await titlePage.accountMenu().evaluate((el) => getComputedStyle(el).position)).toBe("absolute");
+        const menu = (await titlePage.accountMenu().boundingBox())!;
+        expect(menu.x).toBeGreaterThanOrEqual(0);
+        expect(menu.x + menu.width).toBeLessThanOrEqual(width);
+        expect(await titlePage.topBar().boundingBox()).toEqual(before);
+      },
+    );
   }
 }
