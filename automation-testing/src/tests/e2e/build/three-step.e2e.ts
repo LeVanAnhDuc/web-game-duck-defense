@@ -40,7 +40,7 @@ async function buildTower(page: Page, slot: string, tower: string) {
 }
 
 async function enterBattle(page: Page) {
-  await page.goto('/');
+  await page.goto('./');
   await page.getByRole('button', { name: /^CHƠI/ }).first().click();
   await expect(page.locator('canvas')).toBeVisible();
   await expect(page.getByRole('group', { name: /^Vàng/ }).first()).toBeVisible();

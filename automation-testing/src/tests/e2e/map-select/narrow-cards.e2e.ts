@@ -16,7 +16,7 @@ import { test, expect } from '@playwright/test';
  */
 test('thẻ bản đồ ở 375px hiện đủ tên, trạng thái và lý do khoá', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 720 });
-  await page.goto('/');
+  await page.goto('./');
   await page.evaluate(() => {
     localStorage.setItem(
       'duckdefense.profile',
@@ -37,7 +37,7 @@ test('thẻ bản đồ ở 375px hiện đủ tên, trạng thái và lý do kh
       }),
     );
   });
-  await page.goto('/');
+  await page.goto('./');
   await page.getByRole('button', { name: /^Chọn bản đồ|^Choose a map/ }).first().click();
 
   const clipped = await page.evaluate(() => {

@@ -17,7 +17,7 @@ const VIEWPORTS = [
 for (const vp of VIEWPORTS) {
   test(`chụp mọi màn ở ${vp.name}`, async ({ page }) => {
     await page.setViewportSize({ width: vp.width, height: vp.height });
-    await page.goto('/');
+    await page.goto('./');
 
     const shots: [string, () => Promise<void>][] = [
       ['title', async () => {}],

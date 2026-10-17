@@ -13,7 +13,7 @@ test('no sign-in button and no request outside the app origin', async ({ page, b
       outside.push(r.url());
     }
   });
-  await page.goto('/');
+  await page.goto('./');
   await expect(page.getByRole('button', { name: /^CHƠI/ }).first()).toBeVisible();
   await expect(page.getByRole('button', { name: 'Đăng nhập' })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Tài khoản Ducker ID' })).toHaveCount(0);
@@ -22,7 +22,7 @@ test('no sign-in button and no request outside the app origin', async ({ page, b
 });
 
 test('the auth module leaves the URL alone when the flag is off', async ({ page }) => {
-  await page.goto('/?code=abc&state=xyz');
+  await page.goto('./?code=abc&state=xyz');
   await expect(page.getByRole('button', { name: /^CHƠI/ }).first()).toBeVisible();
   expect(new URL(page.url()).search).toBe('?code=abc&state=xyz');
 });

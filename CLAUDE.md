@@ -33,5 +33,15 @@ pnpm preview          # serve client/dist/
 pnpm release:next     # next version, from the commits (git-cliff, repo root)
 ```
 
+```bash
+cd automation-testing
+pnpm install && pnpm exec playwright install chromium
+pnpm test             # builds ../client (flag off + sign-in flag on), serves both, runs every module
+pnpm typecheck
+pnpm coverage:check   # REQ ↔ TC ↔ spec ↔ bug; --write regenerates the traceability matrix
+```
+
+Regression tests: automation-testing/ (/write-tests)
+
 Git hooks: `git config core.hooksPath .githooks` (commit-msg + pre-commit ESLint on staged
 `client/` files).

@@ -18,7 +18,7 @@ const gold = async (page: Page): Promise<number> => {
 
 async function enterBattle(page: Page) {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/');
+  await page.goto('./');
   await page.getByRole('button', { name: /^CHƠI/ }).first().click();
   await expect(page.getByRole('group', { name: /^Vàng/ }).first()).toBeVisible();
 }
@@ -124,7 +124,7 @@ test('nạp asset thất bại: hiện lỗi, và "thử lại" thật sự kh�
   });
 
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/');
+  await page.goto('./');
   await page.getByRole('button', { name: /^CHƠI/ }).first().click();
 
   const alert = page.getByRole('alert');

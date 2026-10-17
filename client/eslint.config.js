@@ -4,7 +4,7 @@ import tseslint from 'typescript-eslint';
 import reactHooks from 'eslint-plugin-react-hooks';
 
 export default tseslint.config(
-  { ignores: ['dist', 'node_modules', 'coverage', 'playwright-report', 'test-results'] },
+  { ignores: ['dist', 'dist-auth', 'node_modules', 'coverage'] },
 
   js.configs.recommended,
   ...tseslint.configs.recommended,
@@ -96,7 +96,7 @@ export default tseslint.config(
   },
 
   {
-    files: ['tests/**/*.ts', 'e2e/**/*.ts', 'scripts/**/*.mjs', '*.config.ts', 'eslint.config.js'],
+    files: ['tests/**/*.ts', 'scripts/**/*.mjs', '*.config.ts', 'eslint.config.js'],
     languageOptions: { globals: { ...globals.node } },
     rules: { '@typescript-eslint/no-explicit-any': 'off' },
   },

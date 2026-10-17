@@ -40,7 +40,7 @@ test('signs in, shows the name, keeps the URL clean, signs out', async ({ page }
   page.on('console', (m) => {
     if (m.type() === 'error') errors.push(m.text());
   });
-  await page.goto('/');
+  await page.goto('./');
   await page.getByRole('button', { name: 'Đăng nhập' }).click();
   const account = page.getByRole('button', { name: 'Tài khoản Ducker ID' });
   await expect(account).toBeVisible();
@@ -63,7 +63,7 @@ test('signs in, shows the name, keeps the URL clean, signs out', async ({ page }
 });
 
 test('reload while signed in goes back to signed out (nothing persisted)', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('./');
   await page.getByRole('button', { name: 'Đăng nhập' }).click();
   await expect(page.getByRole('button', { name: 'Tài khoản Ducker ID' })).toBeVisible();
   await page.reload();
@@ -71,19 +71,19 @@ test('reload while signed in goes back to signed out (nothing persisted)', async
 });
 
 test('a tampered state degrades to signed-out and cleans the URL', async ({ page }) => {
-  await page.goto('/?code=stolen&state=evil');
+  await page.goto('./?code=stolen&state=evil');
   await expect(page.getByRole('button', { name: 'Đăng nhập' })).toBeVisible();
   expect(new URL(page.url()).search).toBe('');
 });
 
 test('an IdP error degrades to signed-out and cleans the URL', async ({ page }) => {
-  await page.goto('/?error=access_denied&error_description=nope');
+  await page.goto('./?error=access_denied&error_description=nope');
   await expect(page.getByRole('button', { name: 'Đăng nhập' })).toBeVisible();
   expect(new URL(page.url()).search).toBe('');
 });
 
 test('the game still plays while signed in', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('./');
   await page.getByRole('button', { name: 'Đăng nhập' }).click();
   await expect(page.getByRole('button', { name: 'Tài khoản Ducker ID' })).toBeVisible();
   await page.getByRole('button', { name: /^CHƠI/ }).first().click();
@@ -91,7 +91,7 @@ test('the game still plays while signed in', async ({ page }) => {
 });
 
 test('English locale labels', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('./');
   await page.getByRole('radio', { name: /English/i }).click();
   await expect(page.getByRole('button', { name: 'Sign in' })).toBeVisible();
   await page.getByRole('button', { name: 'Sign in' }).click();
@@ -102,7 +102,7 @@ test('English locale labels', async ({ page }) => {
 
 test('375px: the button is at least 44x44 and does not overlap the language switch', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 700 });
-  await page.goto('/');
+  await page.goto('./');
   const button = await page.getByRole('button', { name: 'Đăng nhập' }).boundingBox();
   const language = await page.getByRole('radiogroup').first().boundingBox();
   expect(button!.width).toBeGreaterThanOrEqual(44);
@@ -115,7 +115,7 @@ for (const width of [320, 375]) {
   for (const locale of ['vi', 'en'] as const) {
     test(`${width}px ${locale}: top bar does not wrap, language switch stays 44px, menu stays on screen`, async ({ page }) => {
       await page.setViewportSize({ width, height: 700 });
-      await page.goto('/');
+      await page.goto('./');
       if (locale === 'en') await page.getByRole('radio', { name: /English/i }).click();
       const signIn = page.getByRole('button', { name: locale === 'vi' ? 'Đăng nhập' : 'Sign in' });
       const language = page.getByRole('radiogroup').first();

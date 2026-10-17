@@ -6,7 +6,7 @@ const gold = async (page: Page): Promise<number> => {
 };
 
 async function enterBattle(page: Page) {
-  await page.goto('/');
+  await page.goto('./');
   await page.getByRole('button', { name: /^CHƠI|^PLAY/ }).first().click();
   await expect(page.getByRole('group', { name: /^Vàng|^Gold/ }).first()).toBeVisible();
 }
@@ -76,7 +76,7 @@ test('đặt được tháp CHỈ bằng bàn phím, và focus luôn thấy đư
 
 test('focus không bao giờ rơi về <body>, kể cả khi nút gọi đợt tự tắt', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('/');
+  await page.goto('./');
 
   // Vào trận bằng bàn phím: màn tiêu đề bị thay, nên nút vừa bấm biến mất.
   const play = page.getByRole('button', { name: /^CHƠI|^PLAY/ }).first();
@@ -183,7 +183,7 @@ test('HUD không cập nhật theo frame — trần 10Hz', async ({ page }) => {
 for (const locale of ['vi', 'en'] as const) {
   test(`không tràn, không cắt chữ ở locale ${locale} tại 375`, async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 });
-    await page.goto('/');
+    await page.goto('./');
 
     if (locale === 'en') {
       await page.getByRole('radio', { name: 'EN' }).click();
