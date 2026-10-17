@@ -15,6 +15,8 @@ export const test = core.extend<{
   workshopPage: WorkshopPage;
   settingsPage: SettingsPage;
   resultPage: ResultPage;
+  /** Title → PLAY → the HUD is up. Plant a profile (titlePage.seedProfile) or a fake clock first if the test needs one. */
+  enterBattle: () => Promise<void>;
 }>({
   titlePage: async ({ page }, use) => use(new TitlePage(page)),
   battlePage: async ({ page }, use) => use(new BattlePage(page)),
@@ -22,4 +24,10 @@ export const test = core.extend<{
   workshopPage: async ({ page }, use) => use(new WorkshopPage(page)),
   settingsPage: async ({ page }, use) => use(new SettingsPage(page)),
   resultPage: async ({ page }, use) => use(new ResultPage(page)),
+  enterBattle: async ({ titlePage, battlePage }, use) =>
+    use(async () => {
+      await titlePage.goto();
+      await titlePage.play();
+      await battlePage.waitReady();
+    }),
 });

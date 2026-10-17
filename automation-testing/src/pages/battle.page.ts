@@ -145,6 +145,11 @@ export class BattlePage extends BasePage {
     return this.towerCards().getByRole("button", { name: this.t(`tower.${tower}`) });
   }
 
+  /** The price icon of a tower card: a coin while affordable, a lock when not (NFR-A11Y-06's second channel). */
+  towerCardPriceIcon(tower: TowerId): Locator {
+    return this.towerCard(tower).locator("svg").last();
+  }
+
   /** The confirm button: "XÂY · 60" once a type is picked, "Chọn một loại tháp" before. */
   confirmBuildButton(): Locator {
     const prefix = this.t("battle.confirmBuild", { cost: "§" }).split("§")[0];

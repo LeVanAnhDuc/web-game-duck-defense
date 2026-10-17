@@ -1,127 +1,130 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect } from "@/fixtures";
+import { t } from "@/data/copy";
+import { TOWERS, VIEWPORTS } from "@/data/test-data";
 
-/**
- * US-01 — đi hết vòng chơi trong trình duyệt thật.
- *
- * Test này chứng minh phần mà `tests/balance/` KHÔNG kiểm được: dây nối giữa
- * React, `bridge/` và Phaser. Nó cố ý KHÔNG chơi hết 12 đợt — `runBattle`
- * headless đã làm việc đó tốt hơn, trong 200ms, và không phụ thuộc trình duyệt.
- * Ở đây chỉ cần: xây được, gọi đợt được, enemy chết ra tiền, và đợt tăng.
- */
+// FR-08 · FR-33 · ADR-0009: building takes three actions — pick the slot, pick the type, confirm — and only the third
+// spends gold. A stray tap never builds, and the tower's numbers are on screen before the money goes.
 
-const gold = async (page: Page): Promise<number> => {
-  const label = await page.getByRole('group', { name: /^Vàng/ }).first().getAttribute('aria-label');
-  return Number((label ?? '').replace(/\D+/g, ''));
-};
+test.use({ viewport: VIEWPORTS.desktop });
 
-const waveText = (page: Page) => page.getByRole('progressbar', { name: /Đợt|Wave/ }).first();
-
-/**
- * Thẻ chọn loại tháp trong panel xây.
- *
- * Khoanh vùng trong `tower-cards` thay vì tìm theo tên trên cả trang: nhãn của
- * nút Ô trên lớp overlay cũng chứa tên tháp ("Pháo bậc 1 ở ô số 9"), nên
- * Playwright strict mode báo hai kết quả — và nó báo đúng.
- */
-const towerCard = (page: Page, name: string) =>
-  page.getByTestId('tower-cards').getByRole('button', { name });
-
-/**
- * Xây một tháp — BA bước kể từ FR-33: chọn ô, chọn loại, xác nhận.
- *
- * Bước thứ ba tồn tại để người chơi nhìn thấy vòng tầm bắn trước khi trả tiền.
- * Không có nó, hai trong ba persona tự đặt tháp trên bản đồ 1 đã đặt ngoài tầm
- * với của đường đi và thua với gần như không giết được con nào.
- */
-async function buildTower(page: Page, slot: string, tower: string) {
-  await page.getByRole('button', { name: slot }).click();
-  await towerCard(page, tower).click();
-  await page.getByRole('button', { name: /^XÂY · / }).click();
-}
-
-async function enterBattle(page: Page) {
-  await page.goto('./');
-  await page.getByRole('button', { name: /^CHƠI/ }).first().click();
-  await expect(page.locator('canvas')).toBeVisible();
-  await expect(page.getByRole('group', { name: /^Vàng/ }).first()).toBeVisible();
-}
-
-test('xây tháp trừ đúng tiền, và một lần chạm ô không bao giờ tự xây', async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await enterBattle(page);
-
-  expect(await gold(page)).toBe(260);
-
-  // Chạm ô: CHỈ chọn, không xây (US-01 §Điều gì có thể sai).
-  await page.getByRole('button', { name: 'Ô số 8' }).click();
-  expect(await gold(page)).toBe(260);
-
-  // Chạm thẻ tháp: vẫn CHỈ chọn — FR-33. Đây là thao tác từng trừ tiền ngay, và
-  // chính nó làm người chơi mua một tháp trước khi biết nó bắn tới đâu.
-  await towerCard(page, 'Cung').click();
-  expect(await gold(page)).toBe(260);
-
-  // Thao tác thứ BA mới trả tiền.
-  await page.getByRole('button', { name: /^XÂY · / }).click();
-  await expect.poll(() => gold(page)).toBe(200);
+test("chạm ô trống chỉ chọn ô, không trừ vàng", { tag: ["@TC-BUILD-001", "@smoke"] }, async ({ enterBattle, battlePage }) => {
+  await enterBattle();
+  await battlePage.slot(8).click();
+  await expect(battlePage.slot(8)).toHaveAttribute("aria-pressed", "true");
+  expect(await battlePage.gold()).toBe(260);
+  await expect(battlePage.towerCard("arrow")).toContainText(String(TOWERS.arrow.cost));
+  await expect(battlePage.towerCard("cannon")).toContainText(String(TOWERS.cannon.cost));
+  await expect(battlePage.towerCard("frost")).toContainText(String(TOWERS.frost.cost));
+  await expect(battlePage.pickTowerFirstButton()).toBeDisabled();
 });
 
-test('không đủ tiền thì thẻ tháp bị vô hiệu hoá, không phải im lặng', async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await enterBattle(page);
+test("chạm thẻ tháp chỉ chọn loại và hiện số liệu trước khi trả tiền", { tag: ["@TC-BUILD-002", "@smoke"] }, async ({
+  enterBattle,
+  battlePage,
+}) => {
+  await enterBattle();
+  await battlePage.slot(8).click();
+  await battlePage.towerCard("arrow").click();
+  await expect(battlePage.towerCard("arrow")).toHaveAttribute("aria-pressed", "true");
+  expect(await battlePage.gold()).toBe(260);
+  await expect(battlePage.stat("battle.statDamage")).toHaveText(String(TOWERS.arrow.damage[0]));
+  await expect(battlePage.stat("battle.statRange")).toHaveText(String(TOWERS.arrow.range));
+  // 50 ticks / 60 = 0.83 s, shown with one decimal and the vi decimal comma
+  await expect(battlePage.stat("battle.statRate")).toHaveText(t("battle.seconds", { n: 0.8 }));
+  await expect(battlePage.confirmBuildButton()).toHaveText(t("battle.confirmBuild", { cost: TOWERS.arrow.cost }));
+});
 
-  // Tiêu gần hết: 260 → xây hai Pháo (110 mỗi cái) còn 40.
-  for (const slot of ['Ô số 8', 'Ô số 9']) {
-    await buildTower(page, slot, 'Pháo');
+test("chỉ nút XÂY mới trừ tiền và ô thành ô đã xây", { tag: ["@TC-BUILD-003", "@smoke"] }, async ({ enterBattle, battlePage }) => {
+  await enterBattle();
+  await battlePage.build(8, "arrow");
+  await expect.poll(() => battlePage.gold()).toBe(260 - TOWERS.arrow.cost);
+  await battlePage.slot(3).click();
+  await expect(battlePage.builtSlot(8)).toHaveCount(1);
+  await expect(battlePage.slot(3)).toHaveCount(1);
+});
+
+test("không đủ vàng thì thẻ tháp bị vô hiệu và đổi icon xu thành icon khoá", { tag: ["@TC-BUILD-004"] }, async ({
+  enterBattle,
+  battlePage,
+}) => {
+  await enterBattle();
+  const affordableIcon = await battlePage.towerCardPriceIcon("arrow").innerHTML();
+
+  await battlePage.build(8, "cannon");
+  await battlePage.build(9, "cannon");
+  await expect.poll(() => battlePage.gold()).toBe(260 - 2 * TOWERS.cannon.cost);
+
+  for (const tower of ["arrow", "cannon", "frost"] as const) {
+    await expect(battlePage.towerCard(tower)).toBeDisabled();
   }
-  await expect.poll(() => gold(page)).toBe(40);
-
-  await expect(towerCard(page, 'Pháo')).toBeDisabled();
-  await expect(towerCard(page, 'Cung')).toBeDisabled();
+  expect(await battlePage.towerCardPriceIcon("arrow").innerHTML()).not.toBe(affordableIcon);
 });
 
-test('gọi đợt: enemy ra, bị bắn, chết ra tiền, rồi sang đợt 2', async ({ page }) => {
-  test.setTimeout(120_000);
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await enterBattle(page);
+test("vàng vừa đúng bằng giá thì thẻ vẫn chọn và xây được", { tag: ["@TC-BUILD-005"] }, async ({ enterBattle, battlePage }) => {
+  await enterBattle();
+  await battlePage.build(8, "cannon");
+  await battlePage.build(9, "frost");
+  await expect.poll(() => battlePage.gold()).toBe(TOWERS.arrow.cost);
 
-  // Ba tháp quanh đoạn đầu đường để đợt 1 chắc chắn bị diệt sạch.
-  for (const slot of ['Ô số 8', 'Ô số 9', 'Ô số 3']) {
-    await buildTower(page, slot, 'Cung');
-  }
-
-  const goldAfterBuilding = await gold(page);
-  await page.getByRole('radio', { name: 'x3' }).click();
-  await page.getByRole('button', { name: /GỌI ĐỢT TIẾP THEO/ }).click();
-
-  // Enemy chết trả tiền, nên tiền phải VƯỢT mức sau khi xây.
-  await expect.poll(() => gold(page), { timeout: 60_000, intervals: [500] }).toBeGreaterThan(
-    goldAfterBuilding,
-  );
-
-  // Đợt 1 xong thì thanh tiến độ nhích lên.
-  await expect
-    .poll(async () => Number((await waveText(page).getAttribute('aria-valuenow')) ?? '0'), {
-      timeout: 60_000,
-      intervals: [500],
-    })
-    .toBeGreaterThanOrEqual(1);
-
-  // Và không mất mạng nào ở đợt 1 với ba tháp — nếu mất, cân bằng đã lệch.
-  const lives = await page.getByRole('group', { name: /^Mạng/ }).first().getAttribute('aria-label');
-  expect(Number((lives ?? '').replace(/\D+/g, ''))).toBe(20);
+  await battlePage.slot(3).click();
+  await expect(battlePage.towerCard("arrow")).toBeEnabled();
+  await expect(battlePage.towerCard("cannon")).toBeDisabled();
+  await expect(battlePage.towerCard("frost")).toBeDisabled();
+  await battlePage.towerCard("arrow").click();
+  await battlePage.confirmBuildButton().click();
+  await expect.poll(() => battlePage.gold()).toBe(0);
 });
 
-test('bán tháp trả lại tiền, và ô đó xây lại được', async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await enterBattle(page);
+test("Huỷ và Esc bỏ chọn mà không trừ vàng", { tag: ["@TC-BUILD-006"] }, async ({ page, enterBattle, battlePage }) => {
+  await enterBattle();
 
-  await buildTower(page, 'Ô số 8', 'Cung');
-  await expect.poll(() => gold(page)).toBe(200);
+  await battlePage.slot(8).click();
+  await battlePage.towerCard("arrow").click();
+  await battlePage.cancelButton().click();
+  await expect(battlePage.slot(8)).toHaveAttribute("aria-pressed", "false");
+  await expect(battlePage.confirmBuildButton()).toHaveCount(0);
+  expect(await battlePage.gold()).toBe(260);
 
-  await page.getByRole('button', { name: /^Bán/ }).click();
-  await expect.poll(() => gold(page)).toBe(230); // nửa của 60, làm tròn xuống
+  await battlePage.slot(9).click();
+  await battlePage.towerCard("frost").click();
+  await page.keyboard.press("Escape");
+  await expect(battlePage.slot(9)).toHaveAttribute("aria-pressed", "false");
+  await expect(battlePage.confirmBuildButton()).toHaveCount(0);
+  expect(await battlePage.gold()).toBe(260);
+});
 
-  await buildTower(page, 'Ô số 8', 'Cung');
-  await expect.poll(() => gold(page)).toBe(170);
+test("chọn loại tháp trước rồi chạm ô vẫn phải bấm xác nhận", { tag: ["@TC-BUILD-007"] }, async ({ page, enterBattle, battlePage }) => {
+  await enterBattle();
+  await page.keyboard.press("1");
+  await expect(battlePage.towerCard("arrow")).toHaveAttribute("aria-pressed", "true");
+
+  await battlePage.slot(8).click();
+  await expect(battlePage.confirmBuildButton()).toHaveText(t("battle.confirmBuild", { cost: TOWERS.arrow.cost }));
+  expect(await battlePage.gold()).toBe(260);
+
+  await battlePage.confirmBuildButton().click();
+  await expect.poll(() => battlePage.gold()).toBe(260 - TOWERS.arrow.cost);
+});
+
+test("chạm lại thẻ đang chọn thì bỏ chọn loại tháp", { tag: ["@TC-BUILD-008"] }, async ({ enterBattle, battlePage }) => {
+  await enterBattle();
+  await battlePage.slot(8).click();
+  await battlePage.towerCard("cannon").click();
+  await expect(battlePage.towerCard("cannon")).toHaveAttribute("aria-pressed", "true");
+  await battlePage.towerCard("cannon").click();
+  await expect(battlePage.towerCard("cannon")).toHaveAttribute("aria-pressed", "false");
+  await expect(battlePage.pickTowerFirstButton()).toBeDisabled();
+  expect(await battlePage.gold()).toBe(260);
+});
+
+test("chọn lại ô đã xây không mở bảng xây chồng lên tháp", { tag: ["@TC-BUILD-009"] }, async ({ enterBattle, battlePage }) => {
+  await enterBattle();
+  await battlePage.build(8, "arrow");
+  await expect.poll(() => battlePage.gold()).toBe(200);
+  await battlePage.slot(3).click();
+  await battlePage.builtSlot(8).click();
+  await expect(battlePage.towerTitle("arrow", 1)).toBeVisible();
+  await expect(battlePage.confirmBuildButton()).toHaveCount(0);
+  await expect(battlePage.pickTowerFirstButton()).toHaveCount(0);
+  expect(await battlePage.gold()).toBe(200);
 });

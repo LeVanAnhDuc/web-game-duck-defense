@@ -7,7 +7,7 @@ bật cờ Ducker ID với issuer giả ở :5275 — giờ là bản build prod
 
 | Từ | Về | Trạng thái |
 |---|---|---|
-| `client/e2e/us01-play.spec.ts` | `src/tests/e2e/build/three-step.e2e.ts` (git mv) | chưa chuẩn hóa |
+| `client/e2e/us01-play.spec.ts` | `src/tests/e2e/build/three-step.e2e.ts` (git mv): "xây tháp trừ đúng tiền…" → TC-BUILD-001/003, "không đủ tiền…" → TC-BUILD-004; "gọi đợt…" → module `wave`, "bán tháp…" → module `tower` | đã chuẩn hóa (phần build) |
 | `client/e2e/review-regressions.spec.ts` | `src/tests/e2e/tower/upgrade-sell.e2e.ts` (git mv) | chưa chuẩn hóa |
 | `client/e2e/a11y-i18n-perf.spec.ts` | `src/tests/e2e/accessibility/keyboard.e2e.ts` (git mv) | chưa chuẩn hóa |
 | `client/e2e/look.spec.ts` | `src/tests/e2e/responsive/layout.e2e.ts` (git mv) | chưa chuẩn hóa |
