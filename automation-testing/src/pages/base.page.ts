@@ -103,6 +103,16 @@ export abstract class BasePage {
     });
   }
 
+  /** The focus ring of the focused element: computed outline style and width in px. */
+  async focusOutline(): Promise<{ style: string; width: number }> {
+    return this.page.evaluate(() => {
+      const el = document.activeElement;
+      if (!el) return { style: "none", width: 0 };
+      const s = getComputedStyle(el);
+      return { style: s.outlineStyle, width: Number.parseFloat(s.outlineWidth) || 0 };
+    });
+  }
+
   /** The element that has keyboard focus: its tag and accessible-ish name, or "BODY" when focus fell to <body>. */
   async focused(): Promise<{ tag: string; label: string; text: string }> {
     return this.page.evaluate(() => {
