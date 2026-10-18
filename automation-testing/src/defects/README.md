@@ -3,25 +3,27 @@
 **App đang sai ở đâu.** Một file mỗi module: `<module>.md`.
 
 ```md
-# SIGNIN — Bug log
+  # SIGNIN — Bug log
 
-## Đang mở
+  ## Đang mở
 
-| Bug | Mức | TC | Tóm tắt |
-|---|---|---|---|
-| [BUG-SIGNIN-01](#bug-signin-01) | Cao | TC-SIGNIN-016 | … |
+  | Bug | Mức | TC | Tóm tắt |
+  |---|---|---|---|
+  | [BUG-SIGNIN-01](#bug-signin-01) | Cao | TC-SIGNIN-016 | … |
 
-### BUG-SIGNIN-01
+  ### BUG-SIGNIN-01
 
-- **TC:** TC-SIGNIN-016 · **Requirement:** REQ-SIGNIN-08
-- **Bước tái hiện:** …
-- **Mong đợi:** …
-- **Thực tế:** …
+  - **TC:** TC-SIGNIN-016 · **Requirement:** REQ-SIGNIN-08
+  - **Bước tái hiện:** …
+  - **Mong đợi:** …
+  - **Thực tế:** …
 
-## Đã sửa
+  ## Đã sửa
 
-_(chưa có)_
+  _(chưa có)_
 ```
+
+Mẫu nằm trong khối code và thụt hai dấu cách, nên `grep '^### BUG-'` chỉ đếm mục thật (`pnpm coverage:check` vốn bỏ qua README).
 
 - Spec đánh dấu bằng comment `// BUG: defects/<module>.md#bug-<module>-nn` **ngay trên** `test.fail()`.
 - App được sửa → test đỏ vì "pass ngoài dự kiến" → bỏ comment + `test.fail()`, chuyển mục `### BUG-…` xuống `## Đã sửa`.

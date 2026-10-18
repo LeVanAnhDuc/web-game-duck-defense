@@ -5,10 +5,14 @@ Quy ước đầy đủ (cấu trúc, phân lớp, tag, format, luật cứng): 
 
 ## Bắt đầu
 
-1. `pnpm install && pnpm exec playwright install chromium`
-2. `cp .env.example .env` (không cần tài khoản: game tĩnh, không backend)
-3. `pnpm test:unit && pnpm test:smoke`
-4. Viết test cho một module: mở Claude Code trong thư mục này rồi gõ `/write-tests <module>`
+Suite tự build và phục vụ game (`webServer` trong `playwright.config.ts` build `../client` rồi `vite preview`), nên
+dependency của client phải cài **trước**:
+
+1. `cd client && pnpm install --frozen-lockfile` (từ gốc repo)
+2. `cd ../automation-testing && pnpm install && pnpm exec playwright install chromium`
+3. `cp .env.example .env` (không cần tài khoản: game tĩnh, không backend)
+4. `pnpm test:unit && pnpm test:smoke`
+5. Viết test cho một module: mở Claude Code trong thư mục này rồi gõ `/write-tests <module>`
 
 ## Bố cục
 
