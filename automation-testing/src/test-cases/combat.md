@@ -97,3 +97,43 @@ Mọi case: viewport 1440×900, tốc độ x1. Case chạy một đợt dùng �
 - **Bước:** xây Độc ở ô 8 → chọn lại ô 8
 - **Mong đợi:** Vàng 310 → 10; panel "Độc · Bậc 1"
 - **Automated:** `tests/e2e/combat/towers.e2e.ts`
+
+### TC-COMBAT-012 — Sét nổ lan: hai phát, mỗi phát diệt hai Lính
+
+- **Requirement:** REQ-COMBAT-09
+- **Layer:** e2e · **Priority:** P1 · **Lăng kính:** 1
+- **Tiền điều kiện:** profile đã mua `arrowDamage` 3 và `unlockBolt` (260 vàng ở Đồng Cỏ — vừa đủ một Sét)
+- **Bước:** Đồng Cỏ → xây đúng một Sét ở ô 7 → gọi đợt 1 → ghi mọi lần vàng đổi theo frame
+- **Mong đợi:** đúng hai frame vàng tăng 2 × 11 = 22 (Sét nạp lại 60 tick > 12 tick một frame: mỗi frame đó là một phát);
+  mọi lần vàng tăng là bội số của 11; diệt ít nhất 4 Lính
+- **Automated:** `tests/e2e/combat/towers.e2e.ts`
+
+### TC-COMBAT-013 — Độc xuyên giáp: thêm một Độc cạnh Pháo thì diệt đủ năm Giáp, không mất mạng
+
+- **Requirement:** REQ-COMBAT-10
+- **Layer:** e2e · **Priority:** P1 · **Lăng kính:** 1
+- **Tiền điều kiện:** profile đã mua `arrowDamage` 3, `unlockBolt`, `unlockVenom` và "Tiền khởi đầu" bậc 2 (420 vàng ở Lò
+  Rèn Cũ)
+- **Bước:** Lò Rèn Cũ → xây Độc ở ô 1 và Pháo ở ô 6 → gọi đợt 1 (5 Giáp) → chạy hết đợt
+- **Mong đợi:** diệt 5 Giáp (vàng tăng 140), không mất mạng nào — trong khi cùng trận đó mà Độc không xuyên giáp thì chỉ
+  diệt 2 và mất 6 mạng (mô phỏng của chính game, `decisions/combat.md` Q8), y hệt Pháo một mình (TC-COMBAT-014)
+- **Automated:** `tests/e2e/combat/enemies.e2e.ts`
+
+### TC-COMBAT-014 — tháp không xuyên giáp vẫn gây sát thương cho Giáp: một Pháo diệt được hai con
+
+- **Requirement:** REQ-COMBAT-10
+- **Layer:** e2e · **Priority:** P1 · **Lăng kính:** 5
+- **Tiền điều kiện:** như TC-COMBAT-013
+- **Bước:** Lò Rèn Cũ → xây đúng một Pháo ở ô 6 → gọi đợt 1 → chạy hết đợt
+- **Mong đợi:** diệt đúng 2 Giáp (vàng tăng 56), 3 con lọt qua (mất 6 mạng) — giáp cắt bớt sát thương của Pháo (28 → 22)
+  chứ không chặn hết
+- **Automated:** `tests/e2e/combat/enemies.e2e.ts`
+
+### TC-COMBAT-015 — một Pháo ở cùng ô với Sét chỉ diệt được một Lính cả đợt
+
+- **Requirement:** REQ-COMBAT-09
+- **Layer:** e2e · **Priority:** P2 · **Lăng kính:** 2
+- **Tiền điều kiện:** như TC-COMBAT-012
+- **Bước:** Đồng Cỏ → xây đúng một Pháo ở ô 7 → gọi đợt 1 → chạy hết đợt
+- **Mong đợi:** diệt đúng 1 Lính (vàng tăng 11, không frame nào tăng 22) — ít hơn bốn con của Sét ở cùng ô (TC-COMBAT-012)
+- **Automated:** `tests/e2e/combat/towers.e2e.ts`

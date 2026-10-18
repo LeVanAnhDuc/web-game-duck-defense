@@ -1,7 +1,9 @@
 import { test, expect } from "@/fixtures";
+import type { BattlePage } from "@/pages/battle.page";
+import type { TitlePage } from "@/pages/title.page";
 import { t } from "@/data/copy";
 import { profile } from "@/data/profiles";
-import { ENEMIES, FIRST_WAVES, M01, TOWERS, UPGRADES, VIEWPORTS } from "@/data/test-data";
+import { COMBAT_SCENARIOS, ENEMIES, FIRST_WAVES, M01, TOWERS, UPGRADES, VIEWPORTS } from "@/data/test-data";
 
 // FR-04 · FR-20 · FR-21 · FR-33 · README "Five tower lines — fast single-target, splash cannon, area slow, wide-splash
 // bolt and armour-piercing venom". Battles play Đồng Cỏ's first wave (5 Lính) on a frozen clock
@@ -98,4 +100,43 @@ test("xây Độc trừ đúng giá và ô thành tháp Độc bậc 1", { tag: 
   await expect.poll(() => battlePage.gold()).toBe(gold - TOWERS.venom.cost);
   await battlePage.anySlot(8).click();
   await expect(battlePage.towerTitle("venom", 1)).toBeVisible();
+});
+
+// Sét on Đồng Cỏ's first wave. One bolt reloads every 60 ticks and a frame carries 12, so a frame whose gold rises by two
+// bounties holds one strike that killed two grunts. decisions/combat.md Q9.
+const BOLT = COMBAT_SCENARIOS.boltSplash;
+
+async function traceOneTower(titlePage: TitlePage, battlePage: BattlePage, tower: "bolt" | "cannon") {
+  await titlePage.seedProfile(profile({ upgrades: { arrowDamage: UPGRADES.unlockBolt.needs.level, unlockBolt: 1 } }));
+  await battlePage.useFrozenClock();
+  await titlePage.goto();
+  await battlePage.press(titlePage.playButton());
+  await battlePage.waitReady();
+  await battlePage.warmUp();
+  await battlePage.build(BOLT.slot, tower);
+  const gold = await battlePage.gold();
+  await battlePage.callWave();
+  const trace = await battlePage.traceWave();
+  return { ...trace, gained: (await battlePage.gold()) - gold };
+}
+
+test("Sét nổ lan: hai phát, mỗi phát diệt hai Lính", { tag: ["@TC-COMBAT-012"] }, async ({ titlePage, battlePage }) => {
+  const bolt = await traceOneTower(titlePage, battlePage, "bolt");
+
+  expect(TOWERS.bolt.cooldownTicks).toBeGreaterThan(TICKS_PER_FRAME);
+  expect(bolt.goldSteps.filter((step) => step.delta === 2 * ENEMIES.grunt.bounty)).toHaveLength(BOLT.doubleKillStrikes);
+  for (const step of bolt.goldSteps) expect(step.delta % ENEMIES.grunt.bounty).toBe(0);
+  expect(bolt.gained / ENEMIES.grunt.bounty).toBeGreaterThanOrEqual(2 * BOLT.doubleKillStrikes);
+});
+
+test("một Pháo ở cùng ô với Sét chỉ diệt được một Lính cả đợt", { tag: ["@TC-COMBAT-015"] }, async ({
+  titlePage,
+  battlePage,
+}) => {
+  // the control for TC-COMBAT-012: same slot, same wave, a cannon (radius 30) instead of a bolt (radius 44)
+  const cannon = await traceOneTower(titlePage, battlePage, "cannon");
+  expect(TOWERS.bolt.splashRadius).toBeGreaterThan(TOWERS.cannon.splashRadius);
+  expect(cannon.gained / ENEMIES.grunt.bounty).toBe(BOLT.cannonKills);
+  expect(cannon.goldSteps.every((step) => step.delta === ENEMIES.grunt.bounty)).toBe(true);
+  expect(cannon.gained / ENEMIES.grunt.bounty).toBeLessThan(2 * BOLT.doubleKillStrikes);
 });
