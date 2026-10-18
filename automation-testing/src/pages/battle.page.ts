@@ -17,6 +17,7 @@ import type { TowerId } from "@/data/test-data";
  */
 export class BattlePage extends BasePage {
   private fakeClock = false;
+  private frozenClock = false;
 
   constructor(page: Page) {
     super(page);
@@ -28,6 +29,27 @@ export class BattlePage extends BasePage {
   async useFakeClock(): Promise<void> {
     await this.page.clock.install();
     this.fakeClock = true;
+  }
+
+  /**
+   * Like `useFakeClock`, but time does not flow at all between steps: `page.clock.install` alone keeps the clock
+   * running in real time, so a slow machine slips extra game time between two `advance()` calls. Cases that measure
+   * WHEN something happens (how many frames until the first leak) need every frame to be exactly `ms` of game time.
+   * Playwright's actionability checks wait for animation frames, which never come on a paused clock: clicks on this
+   * page object then skip them (`press`) and step one frame after each click so React and the scene catch up.
+   */
+  async useFrozenClock(): Promise<void> {
+    await this.page.clock.install({ time: new Date("2026-01-01T00:00:00Z") });
+    await this.page.clock.pauseAt(new Date("2026-01-01T00:00:01Z"));
+    this.fakeClock = true;
+    this.frozenClock = true;
+  }
+
+  /** A click that works on a frozen clock too (see `useFrozenClock`). Use it for any button while the clock is frozen. */
+  async press(target: Locator): Promise<void> {
+    if (!this.frozenClock) return target.click();
+    await target.click({ force: true });
+    await this.advance(1);
   }
 
   /**
@@ -179,6 +201,11 @@ export class BattlePage extends BasePage {
     return this.page.getByTestId("tower-cards");
   }
 
+  /** Every tower card of the build panel: three at the start, five once Sét and Độc are unlocked. */
+  towerCardButtons(): Locator {
+    return this.towerCards().getByRole("button");
+  }
+
   /** A tower card, scoped to the card row: the slot buttons' names also carry tower names. */
   towerCard(tower: TowerId): Locator {
     return this.towerCards().getByRole("button", { name: this.t(`tower.${tower}`) });
@@ -210,9 +237,14 @@ export class BattlePage extends BasePage {
 
   /** The three steps of FR-33: pick the slot, pick the type, confirm. */
   async build(slot: number, tower: TowerId): Promise<void> {
-    await this.slot(slot).click();
-    await this.towerCard(tower).click();
-    await this.confirmBuildButton().click();
+    await this.press(this.slot(slot));
+    await this.press(this.towerCard(tower));
+    await this.press(this.confirmBuildButton());
+  }
+
+  /** The type description under the build panel's title: "Xuyên giáp, nhắm con nhiều máu nhất." */
+  towerDescription(tower: TowerId): Locator {
+    return this.page.getByText(this.t(`tower.${tower}.desc` as CopyKey), { exact: true });
   }
 
   // ── selected tower ──────────────────────────────────────────────────────
@@ -255,7 +287,11 @@ export class BattlePage extends BasePage {
   }
 
   async callWave(): Promise<void> {
-    await this.callWaveButton().click();
+    await this.press(this.callWaveButton());
+  }
+
+  async setSpeed(speed: 1 | 2 | 3): Promise<void> {
+    await this.press(this.speedOption(speed));
   }
 
   speedOption(speed: 1 | 2 | 3): Locator {
@@ -311,6 +347,28 @@ export class BattlePage extends BasePage {
       const phase = await this.phase();
       if (phase !== "wave") return;
       if (between) await between();
+    }
+    throw new Error(`wave still running after ${maxFrames} frames`);
+  }
+
+  /**
+   * Plays the running wave frame by frame and records what the HUD shows after each frame: the frame numbers on which
+   * lives dropped, and every change of gold (frame and amount). Stops at the next prep phase or the end of the battle.
+   * Frame numbers count from the call of the wave, so with `useFrozenClock` frame × 200 ms is game time.
+   */
+  async traceWave(maxFrames = 1500): Promise<{ leakFrames: number[]; goldSteps: { frame: number; delta: number }[] }> {
+    const leakFrames: number[] = [];
+    const goldSteps: { frame: number; delta: number }[] = [];
+    let gold = await this.gold();
+    let lives = await this.lives();
+    for (let frame = 1; frame <= maxFrames; frame++) {
+      await this.advance(1);
+      if (await this.ended()) return { leakFrames: [...leakFrames, frame], goldSteps };
+      const [g, l] = [await this.gold(), await this.lives()];
+      if (g !== gold) goldSteps.push({ frame, delta: g - gold });
+      if (l < lives) leakFrames.push(frame);
+      [gold, lives] = [g, l];
+      if (frame % 10 === 0 && (await this.phase()) !== "wave") return { leakFrames, goldSteps };
     }
     throw new Error(`wave still running after ${maxFrames} frames`);
   }

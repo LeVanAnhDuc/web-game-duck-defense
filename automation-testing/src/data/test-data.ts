@@ -33,8 +33,24 @@ export const TOWERS = {
   arrow: { cost: 60, damage: [12, 18, 27], range: 78, cooldownTicks: 50, upgrade: [60, 110] },
   cannon: { cost: 110, damage: [28, 41, 60], range: 66, cooldownTicks: 110, upgrade: [120, 200] },
   frost: { cost: 90, damage: [4, 6, 9], range: 70, cooldownTicks: 70, upgrade: [95, 160] },
-  bolt: { cost: 260 },
-  venom: { cost: 300 },
+  bolt: { cost: 260, damage: [22, 33, 48], range: 58, cooldownTicks: 60 },
+  venom: { cost: 300, damage: [16, 24, 36], range: 74, cooldownTicks: 40 },
+} as const;
+
+// ../client/src/data/enemies.ts — speed (map units per second), lives lost on reaching the end (leak) and gold paid
+// for a kill (bounty) of each enemy type.
+export const ENEMIES = {
+  grunt: { speed: 34, leak: 1, bounty: 11 },
+  runner: { speed: 62, leak: 1, bounty: 13 },
+  armored: { speed: 26, leak: 2, bounty: 28 },
+} as const;
+
+// The first wave of each map the combat module plays, and the length of that map's road in map units: the sum of the
+// segments between the waypoints of ../client/src/data/maps/m01-dong-co.ts, m04-deo-gio.ts and m05-lo-ren-cu.ts.
+export const FIRST_WAVES = {
+  m01: { enemy: "grunt", count: 5, roadLength: 1072 },
+  m04: { enemy: "runner", count: 10, roadLength: 1164 },
+  m05: { enemy: "armored", count: 5, roadLength: 1214 },
 } as const;
 
 // ../client/src/core/economy.ts → sellValue: floor(spent × sellRatio); sellRatio 0.5, 0.75 with the `sellRatio` node.
@@ -54,6 +70,7 @@ export const UPGRADES = {
   sellRatio: { costs: [190], maxLevel: 1, needs: { node: "buildCost", level: 1 } },
   buildCost: { costs: [85, 150, 240] },
   unlockBolt: { costs: [300], needs: { node: "arrowDamage", level: 3 } },
+  unlockVenom: { costs: [450], needs: { node: "unlockBolt", level: 1 } },
 } as const;
 // TOTAL_TREE_COST: the sum of every cost of every node in ../client/src/data/upgradeTree.ts.
 export const TOTAL_TREE_COST = 5545;
