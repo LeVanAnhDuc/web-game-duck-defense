@@ -21,6 +21,8 @@ Mỗi thư mục trong `src/` có `README.md` nói rõ chứa gì, không chứa
   snapshot 10Hz — test chỉ đọc DOM (nhãn `aria-label` của chip Vàng/Mạng, `progressbar` đợt), không đọc state trong canvas.
 - **Thời gian giả cho trận dài:** trận cần chạy hết (thắng/thua) dùng `page.clock` (install trước khi tải trang →
   `runFor`), không chờ thời gian thật. Mô phỏng chạy fixed-timestep theo `performance.now`/rAF nên kết quả không đổi.
+  `page.clock.install` để đồng hồ vẫn trôi theo thời gian thật giữa hai bước; case đo **lúc nào** một việc xảy ra
+  (module `combat`) dùng `BattlePage.useFrozenClock` (đứng yên, mỗi frame đúng 200 ms game) và bấm qua `BattlePage.press`.
 - **Project:** `app` (Desktop Chrome, viewport đặt trong từng test khi cần), `app-auth` (bản bật cờ, chỉ
   `tests/e2e/ducker-id/sign-in.e2e.ts`, chỉ có trên dev).
 
