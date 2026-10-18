@@ -31,9 +31,9 @@ export const M01 = { ...{ startGold: 260, startLives: 20, waves: 12 }, firstWave
 // 1/60 s) and upgrade costs per level.
 export const TOWERS = {
   arrow: { cost: 60, damage: [12, 18, 27], range: 78, cooldownTicks: 50, upgrade: [60, 110] },
-  cannon: { cost: 110, damage: [28, 41, 60], range: 66, cooldownTicks: 110, upgrade: [120, 200] },
+  cannon: { cost: 110, damage: [28, 41, 60], range: 66, cooldownTicks: 110, splashRadius: 30, upgrade: [120, 200] },
   frost: { cost: 90, damage: [4, 6, 9], range: 70, cooldownTicks: 70, upgrade: [95, 160] },
-  bolt: { cost: 260, damage: [22, 33, 48], range: 58, cooldownTicks: 60 },
+  bolt: { cost: 260, damage: [22, 33, 48], range: 58, cooldownTicks: 60, splashRadius: 44 },
   venom: { cost: 300, damage: [16, 24, 36], range: 74, cooldownTicks: 40 },
 } as const;
 
@@ -51,6 +51,31 @@ export const FIRST_WAVES = {
   m01: { enemy: "grunt", count: 5, roadLength: 1072 },
   m04: { enemy: "runner", count: 10, roadLength: 1164 },
   m05: { enemy: "armored", count: 5, roadLength: 1214 },
+} as const;
+
+// ../client/src/data/enemies.ts → armored.armor: a flat cut on every hit of a tower that does not pierce armour
+// (../client/src/core/step/projectiles.ts → effectiveDamage: max(1, damage − armor), or damage when pierceArmor).
+export const ARMOR = 6;
+
+// Battles whose outcome shows a tower line's effect on the HUD. The browser plays the game's own deterministic
+// simulation (fixed timestep, the seed drives nothing), so each outcome below is exact. The numbers were read from
+// ../client/src/core (createBattle → build → startWave → step until the wave ends) on 2026-10-18; `ifNoPierce` is
+// the same battle with tower.venom.pierceArmor set to false — what the player would see if venom did not pierce.
+// decisions/combat.md Q8, Q9.
+export const COMBAT_SCENARIOS = {
+  // Lò Rèn Cũ, first wave (5 Giáp), "Tiền khởi đầu" level 2 (420 gold): Độc on slot 1 + Pháo on slot 6.
+  venomPierce: {
+    map: "m05",
+    startGold: 2,
+    venomSlot: 1,
+    cannonSlot: 6,
+    withVenom: { kills: 5, livesLost: 0 },
+    cannonAlone: { kills: 2, livesLost: 6 },
+    ifNoPierce: { kills: 2, livesLost: 6 },
+  },
+  // Đồng Cỏ, first wave (5 Lính), 260 gold: one Sét on slot 7 kills two grunts with each of two strikes; one Pháo on
+  // the same slot kills a single grunt in the whole wave.
+  boltSplash: { map: "m01", slot: 7, doubleKillStrikes: 2, cannonKills: 1 },
 } as const;
 
 // ../client/src/core/economy.ts → sellValue: floor(spent × sellRatio); sellRatio 0.5, 0.75 with the `sellRatio` node.

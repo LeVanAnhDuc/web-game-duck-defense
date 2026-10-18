@@ -1,10 +1,21 @@
 import { test, expect } from "@/fixtures";
 import { cleared, profile, type MapRecord } from "@/data/profiles";
-import { ENEMIES, FIRST_WAVES, MAP_ORDER, MAPS, VIEWPORTS, type MapId } from "@/data/test-data";
+import {
+  ARMOR,
+  COMBAT_SCENARIOS,
+  ENEMIES,
+  FIRST_WAVES,
+  MAP_ORDER,
+  MAPS,
+  TOWERS,
+  UPGRADES,
+  VIEWPORTS,
+  type MapId,
+} from "@/data/test-data";
 import type { BattlePage } from "@/pages/battle.page";
 import type { TitlePage } from "@/pages/title.page";
 
-// FR-01 · FR-05 · FR-06 · FR-24 · README "Three enemy types with their own speed, armour and bounty".
+// FR-01 · FR-05 · FR-06 · FR-21 · FR-24 · README "Three enemy types with their own speed, armour and bounty".
 // Every case plays the FIRST wave of a map whose first wave is one enemy type: Đồng Cỏ (Lính), Đèo Gió (Chạy nhanh),
 // Lò Rèn Cũ (Giáp). The clock is frozen (BattlePage.useFrozenClock): one frame = exactly 200 ms of game time at x1.
 
@@ -113,4 +124,55 @@ test("diệt Giáp thì mỗi con ra đúng 28 vàng", { tag: ["@TC-COMBAT-006"]
   expect(leakFrames).toEqual([]);
   expect(await battlePage.gold()).toBe(before + FIRST_WAVES.m05.count * ENEMIES.armored.bounty);
   for (const step of goldSteps) expect(step.delta % ENEMIES.armored.bounty).toBe(0);
+});
+
+// ── armour and armour-piercing (FR-21) ────────────────────────────────────────────────────────────────────────────
+
+const PIERCE = COMBAT_SCENARIOS.venomPierce;
+// Độc needs both unlocks (arrowDamage 3 → unlockBolt → unlockVenom); "Tiền khởi đầu" 2 gives 420 gold, enough for
+// Độc + Pháo. The cannon-alone control gets the same profile, so the only difference between the two battles is Độc.
+const PIERCE_UPGRADES = {
+  arrowDamage: UPGRADES.unlockBolt.needs.level,
+  unlockBolt: 1,
+  unlockVenom: 1,
+  startGold: PIERCE.startGold,
+};
+
+async function playArmoredWave(battlePage: BattlePage) {
+  const before = await battlePage.gold();
+  const livesBefore = await battlePage.lives();
+  await battlePage.callWave();
+  await battlePage.traceWave();
+  const gained = (await battlePage.gold()) - before;
+  return { kills: gained / ENEMIES.armored.bounty, livesLost: livesBefore - (await battlePage.lives()), gained };
+}
+
+test("tháp không xuyên giáp vẫn gây sát thương cho Giáp: một Pháo diệt được hai con", { tag: ["@TC-COMBAT-014"] }, async ({
+  titlePage,
+  battlePage,
+}) => {
+  await enterMap(titlePage, battlePage, PIERCE.map, PIERCE_UPGRADES);
+  await battlePage.build(PIERCE.cannonSlot, "cannon");
+  const { kills, livesLost, gained } = await playArmoredWave(battlePage);
+
+  // armour cuts every cannon hit by 6 (28 → 22) but never to nothing: two armoured still die, three get through
+  expect(TOWERS.cannon.damage[0] - ARMOR).toBeGreaterThan(1);
+  expect(gained % ENEMIES.armored.bounty).toBe(0);
+  expect({ kills, livesLost }).toEqual(PIERCE.cannonAlone);
+});
+
+test("Độc xuyên giáp: thêm một Độc cạnh Pháo thì diệt đủ năm Giáp, không mất mạng", { tag: ["@TC-COMBAT-013"] }, async ({
+  titlePage,
+  battlePage,
+}) => {
+  await enterMap(titlePage, battlePage, PIERCE.map, PIERCE_UPGRADES);
+  await battlePage.build(PIERCE.venomSlot, "venom");
+  await battlePage.build(PIERCE.cannonSlot, "cannon");
+  const outcome = await playArmoredWave(battlePage);
+
+  // With pierce, each venom hit lands its full 16; without it, 16 − 6 = 10 and the same battle ends exactly like the
+  // cannon alone (TC-COMBAT-014): the three extra kills are the pierce. decisions/combat.md Q8.
+  expect({ kills: outcome.kills, livesLost: outcome.livesLost }).toEqual(PIERCE.withVenom);
+  expect(outcome.kills).toBeGreaterThan(PIERCE.ifNoPierce.kills);
+  expect(outcome.livesLost).toBeLessThan(PIERCE.ifNoPierce.livesLost);
 });
