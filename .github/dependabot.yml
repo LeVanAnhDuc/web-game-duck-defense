@@ -1,0 +1,21 @@
+version: 2
+updates:
+  # The game app lives in client/ since the restructure (#11).
+  - package-ecosystem: npm
+    directory: /client
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  # The Playwright regression suite has its own manifest and lockfile.
+  - package-ecosystem: npm
+    directory: /automation-testing
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
