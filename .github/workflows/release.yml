@@ -42,7 +42,7 @@ jobs:
       # in client/package.json, so this job and the local command run the same git-cliff.
       # git-cliff itself runs from the repo root here; the local scripts in
       # client/package.json pass `--workdir ..` to read the same history.
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           package_json_file: client/package.json
 
